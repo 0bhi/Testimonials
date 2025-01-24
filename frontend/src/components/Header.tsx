@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/react-router";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,12 +37,12 @@ const Header = () => {
             </Link>
           </div> */}
           <div className="flex items-center justify-between">
-            <Link
-              to="/login"
-              className="bg-blue-900 text-white px-4 py-2 rounded-lg"
-            >
-              Login
-            </Link>
+            <SignedOut>
+              <SignInButton />
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
         </div>
         <div className="md:hidden">
