@@ -14,11 +14,13 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  name  String
-  email String  @unique
-  password String
-  spaces Space[]
+  id        String     @id
+  firstName String
+  lastName  String?
+  email     String  @unique
+  password  String?
+  googleId  String?
+  spaces    Space[]
 }
 
 model Space {
@@ -29,7 +31,7 @@ model Space {
   question1 String
   question2 String
   question3 String
-  userId Int
+  userId String
   user User @relation(fields: [userId], references: [id])
   
 }

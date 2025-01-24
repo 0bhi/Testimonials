@@ -1,12 +1,14 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { spaceRoutes } from "./routes/spaceRoutes";
+import { clerkRoutes } from "./routes/clerkRoutes";
 const app = express();
 const prisma = new PrismaClient();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use("/space", spaceRoutes);
+app.use("/webhooks/clerk", clerkRoutes);
 app.get("/", async (req, res) => {
   res.send("Hello, world!");
 });
