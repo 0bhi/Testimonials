@@ -33,5 +33,15 @@ model Space {
   question3 String
   userId String
   user User @relation(fields: [userId], references: [id])
-  
+  testimonials Testimonial[]
+}
+
+model Testimonial {
+  id Int @id @default(autoincrement())
+  content String
+  image String?
+  name String
+  email String
+  spaceId Int
+  space Space @relation(fields: [spaceId], references: [id])
 }

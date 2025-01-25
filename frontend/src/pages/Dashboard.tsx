@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 interface Space {
@@ -89,7 +89,12 @@ const Dashboard = () => {
                 className="bg-gray-800 p-6 rounded-lg mt-4 w-full h-32 flex flex-col justify-between"
               >
                 <div className="flex justify-between">
-                  <div className="text-white text-xl">{space.spaceName}</div>
+                  <Link
+                    to={`/space/${space.spaceName}`}
+                    className="text-white text-xl"
+                  >
+                    {space.spaceName}
+                  </Link>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
