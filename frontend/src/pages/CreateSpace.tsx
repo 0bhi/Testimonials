@@ -1,6 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
 const CreateSpace = () => {
+  const { user } = useUser();
+  const navigate = useNavigate();
   const [spaceName, setSpaceName] = useState("");
   const [headerTitle, setHeaderTitle] = useState("");
   const [customMessage, setCustomMessage] = useState("");
@@ -8,16 +13,23 @@ const CreateSpace = () => {
   const [question2, setQuestion2] = useState("");
   const [question3, setQuestion3] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({
-      spaceName,
-      headerTitle,
-      customMessage,
-      question1,
-      question2,
-      question3,
-    });
+    try {
+      await axios.post("http://localhost:3000/space/create", {
+        userId: user?.id,
+        spaceName,
+        headerTitle,
+        customMessage,
+        question1,
+        question2,
+        question3,
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      navigate("/dashboard");
+    }
   };
 
   return (

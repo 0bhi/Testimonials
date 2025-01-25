@@ -2,10 +2,11 @@ import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { spaceRoutes } from "./routes/spaceRoutes";
 import { clerkRoutes } from "./routes/clerkRoutes";
+import cors from "cors";
 const app = express();
 const prisma = new PrismaClient();
 const port = process.env.PORT || 3000;
-
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 app.use("/space", spaceRoutes);
 app.use("/webhooks/clerk", clerkRoutes);

@@ -26,7 +26,18 @@ router.post("/create", async (req, res) => {
     });
     res.status(200).json(space);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Failed to create space" });
+  }
+});
+
+router.get("/", async (req, res) => {
+  try {
+    const spaces = await prisma.space.findMany();
+    res.status(200).json(spaces);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch spaces" });
   }
 });
 
