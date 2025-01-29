@@ -8,6 +8,7 @@ import SpacePage from "./pages/SpacePage";
 import Testimonial from "./pages/Testimonial";
 import EmbedTestimonials from "./pages/EmbedTestimonials";
 import EmbedLayout from "./embedLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -18,10 +19,19 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/create-space" element={<CreateSpace />} />
-            <Route path="/space/:spaceName" element={<SpacePage />} />
-            <Route path="/:spaceName" element={<Testimonial />} />
+            <Route
+              path="/dashboard"
+              element={<ProtectedRoute element={<Dashboard />} />}
+            />
+            <Route
+              path="/create-space"
+              element={<ProtectedRoute element={<CreateSpace />} />}
+            />
+            <Route
+              path="/space/:spaceName"
+              element={<ProtectedRoute element={<SpacePage />} />}
+            />
+            <Route path="/testimonial/:spaceName" element={<Testimonial />} />
           </Route>
           <Route
             path="/embed/testimonials/:spaceName"

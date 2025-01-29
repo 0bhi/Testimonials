@@ -13,7 +13,7 @@ const LandingPage = () => {
           text and video testimonials from your customers—no developers or
           website hosting required.
         </p>
-        <Link to="/login">
+        <Link to="/dashboard">
           <button className="mt-8 px-8 py-4 bg-blue-900 text-white font-bold rounded-lg shadow-lg ">
             Get Started
           </button>

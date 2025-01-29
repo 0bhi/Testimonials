@@ -38,7 +38,7 @@ const Header = () => {
           </div> */}
           <div className="flex items-center justify-between">
             <SignedOut>
-              <SignInButton />
+              <SignInButton forceRedirectUrl="/dashboard" />
             </SignedOut>
             <SignedIn>
               <UserButton />
