@@ -17,6 +17,10 @@ const SpacePage = () => {
   const [activeTab, setActiveTab] = useState("testimonials");
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const fetchSpace = async () => {
       try {
         const response = await axios.get(

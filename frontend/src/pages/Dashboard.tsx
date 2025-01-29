@@ -20,7 +20,6 @@ const Dashboard = () => {
       const response = await fetch("http://localhost:3000/space");
       const data = await response.json();
       setSpaces(data);
-      console.log(data);
     } catch (error) {
       console.log("Error fetching spaces:", error);
     }
@@ -75,7 +74,7 @@ const Dashboard = () => {
               ></path>
             </svg>
           </div>
-          <div className="mt-4 text-white text-xl">0/2</div>
+          <div className="mt-4 text-white text-xl">{spaces.length}</div>
         </div>
       </div>
 
