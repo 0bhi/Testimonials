@@ -10,6 +10,9 @@ interface Testimonial {
   image: string;
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+
 const SpacePage = () => {
   const { spaceName } = useParams<{ spaceName: string }>();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -23,9 +26,7 @@ const SpacePage = () => {
   useEffect(() => {
     const fetchSpace = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:3000/space/${spaceName}`
-        );
+        const response = await axios.get(`${BACKEND_URL}/space/${spaceName}`);
         const { data } = response;
         setTestimonials(data.testimonials || []);
         setLoading(false);
@@ -45,8 +46,8 @@ const SpacePage = () => {
     );
   }
 
-  const embedCode = `<iframe src="http://localhost:5173/embed/testimonials/${spaceName}" width="100%" height="600" frameborder="0" style="border:0; overflow:hidden;" allowfullscreen></iframe>`;
-  const testimonialLink = `http://localhost:5173/testimonial/${spaceName}`;
+  const embedCode = `<iframe src="${FRONTEND_URL}/embed/testimonials/${spaceName}" width="100%" height="600" frameborder="0" style="border:0; overflow:hidden;" allowfullscreen></iframe>`;
+  const testimonialLink = `${FRONTEND_URL}/testimonial/${spaceName}`;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {

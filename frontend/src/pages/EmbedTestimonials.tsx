@@ -10,6 +10,8 @@ interface Testimonial {
   image: string;
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const EmbedTestimonials = () => {
   const { spaceName } = useParams<{ spaceName: string }>();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -18,9 +20,7 @@ const EmbedTestimonials = () => {
   useEffect(() => {
     const fetchSpace = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:3000/space/${spaceName}`
-        );
+        const response = await axios.get(`${BACKEND_URL}/space/${spaceName}`);
         const { data } = response;
         setTestimonials(data.testimonials || []);
         setLoading(false);

@@ -11,13 +11,15 @@ interface Space {
   question3: string;
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const Dashboard = () => {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const navigate = useNavigate();
 
   const fetchSpaces = async () => {
     try {
-      const response = await fetch("http://localhost:3000/space");
+      const response = await fetch(`${BACKEND_URL}/space`);
       const data = await response.json();
       setSpaces(data);
     } catch (error) {

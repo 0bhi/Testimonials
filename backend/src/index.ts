@@ -6,7 +6,7 @@ import cors from "cors";
 const app = express();
 const prisma = new PrismaClient();
 const port = process.env.PORT || 3000;
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: true }));
 app.use(express.json());
 app.use("/space", spaceRoutes);
 app.use("/webhooks/clerk", clerkRoutes);

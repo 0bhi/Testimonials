@@ -12,6 +12,8 @@ interface Space {
   question3: string;
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const Testimonial = () => {
   const { spaceName } = useParams<{ spaceName: string }>();
   const [space, setSpace] = useState<Space | null>(null);
@@ -24,9 +26,7 @@ const Testimonial = () => {
   useEffect(() => {
     const fetchSpace = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:3000/space/${spaceName}`
-        );
+        const response = await axios.get(`${BACKEND_URL}/space/${spaceName}`);
         setSpace(response.data);
       } catch (error) {
         console.error("Error fetching space:", error);
@@ -49,15 +49,11 @@ const Testimonial = () => {
 
     try {
       console.log("Testimonial data:", testimonialData);
-      await axios.post(
-        `http://localhost:3000/space/${spaceName}`,
-        testimonialData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await axios.post(`${BACKEND_URL}/space/${spaceName}`, testimonialData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       // Handle success (e.g., show a success message or redirect)
     } catch (error) {
       console.error("Error submitting testimonial:", error);

@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const CreateSpace = () => {
   const { user } = useUser();
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ const CreateSpace = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/space/create", {
+      await axios.post(`${BACKEND_URL}/space/create`, {
         userId: user?.id,
         spaceName,
         headerTitle,
