@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import { api } from "../services/api";
 
 interface Space {
-  id: number;
+  id: string;
   spaceName: string;
   headerTitle: string;
   customMessage: string;
@@ -11,8 +11,6 @@ interface Space {
   question2: string;
   question3: string;
 }
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Testimonial = () => {
   const { spaceName } = useParams<{ spaceName: string }>();
@@ -22,12 +20,15 @@ const Testimonial = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSpace = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/space/${spaceName}`);
-        setSpace(response.data);
+        const response = await api.getPublicSpace(spaceName!);
+        const data = await response.json();
+        setSpace(data);
       } catch (error) {
         console.error("Error fetching space:", error);
       }
@@ -39,26 +40,21 @@ const Testimonial = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const testimonialData = {
-      content,
-      image,
-      email,
-      name,
-      spaceId: space ? space.id : null,
-    };
-
     try {
-      console.log("Testimonial data:", testimonialData);
-      await axios.post(`${BACKEND_URL}/space/${spaceName}`, testimonialData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+      setLoading(true);
+      setError(null);
+      await api.submitTestimonial(spaceName!, {
+        content,
+        image: image || undefined,
+        email,
+        name,
       });
-      // Handle success (e.g., show a success message or redirect)
+      setSubmitted(true);
     } catch (error) {
       console.error("Error submitting testimonial:", error);
+      setError("Failed to submit testimonial. Please try again.");
     } finally {
-      setSubmitted(true);
+      setLoading(false);
     }
   };
 
@@ -125,11 +121,13 @@ const Testimonial = () => {
                 required
               />
             </div>
+            {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
             <button
               type="submit"
-              className="bg-blue-800 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}
+              className="bg-blue-800 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Submit Testimonial
+              {loading ? "Submitting..." : "Submit Testimonial"}
             </button>
           </form>
         </div>

@@ -1,5 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { api } from "../services/api";
 
 interface Space {
   id: string;
@@ -11,25 +12,55 @@ interface Space {
   question3: string;
 }
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
 const Dashboard = () => {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const fetchSpaces = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/space`);
+      setLoading(true);
+      setError(null);
+      const response = await api.getSpaces();
       const data = await response.json();
       setSpaces(data);
     } catch (error) {
-      console.log("Error fetching spaces:", error);
+      console.error("Error fetching spaces:", error);
+      setError("Failed to load spaces. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchSpaces();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="text-xl mb-4">{error}</div>
+          <button
+            onClick={fetchSpaces}
+            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 px-52 py-28">

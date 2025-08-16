@@ -1,16 +1,14 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { api } from "../services/api";
 
 interface Testimonial {
-  id: number;
+  id: string;
   name: string;
   email: string;
   content: string;
   image: string;
 }
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const EmbedTestimonials = () => {
   const { spaceName } = useParams<{ spaceName: string }>();
@@ -20,12 +18,12 @@ const EmbedTestimonials = () => {
   useEffect(() => {
     const fetchSpace = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/space/${spaceName}`);
-        const { data } = response;
+        const response = await api.getPublicSpace(spaceName!);
+        const data = await response.json();
         setTestimonials(data.testimonials || []);
         setLoading(false);
       } catch (error) {
-        console.log("Error fetching space:", error);
+        console.error("Error fetching space:", error);
         setLoading(false);
       }
     };

@@ -1,12 +1,8 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import { api } from "../services/api";
 
 const CreateSpace = () => {
-  const { user } = useUser();
   const navigate = useNavigate();
   const [spaceName, setSpaceName] = useState("");
   const [headerTitle, setHeaderTitle] = useState("");
@@ -14,12 +10,15 @@ const CreateSpace = () => {
   const [question1, setQuestion1] = useState("");
   const [question2, setQuestion2] = useState("");
   const [question3, setQuestion3] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post(`${BACKEND_URL}/space/create`, {
-        userId: user?.id,
+      setLoading(true);
+      setError(null);
+      await api.createSpace({
         spaceName,
         headerTitle,
         customMessage,
@@ -27,10 +26,12 @@ const CreateSpace = () => {
         question2,
         question3,
       });
-    } catch (error) {
-      console.error(error);
-    } finally {
       navigate("/dashboard");
+    } catch (error) {
+      console.error("Error creating space:", error);
+      setError("Failed to create space. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -145,12 +146,16 @@ const CreateSpace = () => {
           />
         </div>
 
+        {error && (
+          <div className="mb-4 text-red-600 text-center text-sm">{error}</div>
+        )}
         <div className="flex items-center justify-center">
           <button
             type="submit"
-            className="bg-blue-800  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={loading}
+            className="bg-blue-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Space
+            {loading ? "Creating..." : "Create Space"}
           </button>
         </div>
       </form>

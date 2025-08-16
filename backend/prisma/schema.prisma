@@ -24,7 +24,7 @@ model User {
 }
 
 model Space {
-  id Int @id @default(autoincrement())
+  id String @id @default(cuid())
   spaceName String
   headerTitle String
   customMessage String
@@ -34,14 +34,17 @@ model Space {
   userId String
   user User @relation(fields: [userId], references: [id])
   testimonials Testimonial[]
+  
+  @@unique([spaceName, userId])
+  @@index([userId])
 }
 
 model Testimonial {
-  id Int @id @default(autoincrement())
+  id String @id @default(cuid())
   content String
   image String?
   name String
   email String
-  spaceId Int
+  spaceId String
   space Space @relation(fields: [spaceId], references: [id])
 }

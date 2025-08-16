@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { authenticateUser, authorizeSpaceOwner } from "../middleware/auth";
+import { handleError } from "../utils/errorHandler";
 
 const router = Router();
 const prisma = new PrismaClient();
-router.post("/create", async (req, res) => {
+router.post("/create", authenticateUser, async (req, res) => {
   const {
-    userId,
     spaceName,
     headerTitle,
     customMessage,
@@ -13,7 +14,23 @@ router.post("/create", async (req, res) => {
     question2,
     question3,
   } = req.body;
+
+  // Use the authenticated user's ID
+  const userId = req.user!.id;
+
   try {
+    // Check if space name already exists for this user
+    const existingSpace = await prisma.space.findFirst({
+      where: {
+        spaceName,
+        userId,
+      },
+    });
+
+    if (existingSpace) {
+      return res.status(409).json({ error: "Space name already exists" });
+    }
+
     const space = await prisma.space.create({
       data: {
         userId,
@@ -25,25 +42,54 @@ router.post("/create", async (req, res) => {
         question3,
       },
     });
-    res.status(200).json(space);
+    res.status(201).json(space);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to create space" });
+    handleError(error, res);
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", authenticateUser, async (req, res) => {
   try {
-    const spaces = await prisma.space.findMany();
+    // Only return spaces belonging to the authenticated user
+    const spaces = await prisma.space.findMany({
+      where: {
+        userId: req.user!.id,
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
     res.status(200).json(spaces);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch spaces" });
+    handleError(error, res);
   }
 });
 
 router.get(
   "/:spaceName",
+  authenticateUser,
+  authorizeSpaceOwner,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      // The space is already loaded and verified by authorizeSpaceOwner middleware
+      const space = await prisma.space.findFirst({
+        where: {
+          spaceName: req.params.spaceName,
+          userId: req.user!.id,
+        },
+        include: { testimonials: true },
+      });
+
+      res.status(200).json(space);
+    } catch (error) {
+      handleError(error, res);
+    }
+  }
+);
+
+// Public endpoint for fetching space data (no authentication required)
+router.get(
+  "/public/:spaceName",
   async (req: Request, res: Response): Promise<void> => {
     const { spaceName } = req.params;
     try {
@@ -59,17 +105,18 @@ router.get(
 
       res.status(200).json(space);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to fetch space" });
+      handleError(error, res);
     }
   }
 );
 
+// Public endpoint for submitting testimonials (no authentication required)
 router.post(
-  "/:spaceName",
+  "/:spaceName/testimonials",
   async (req: Request, res: Response): Promise<void> => {
     const { spaceName } = req.params;
     const { content, image, name, email } = req.body;
+
     try {
       const space = await prisma.space.findFirst({
         where: { spaceName },
@@ -92,8 +139,44 @@ router.post(
 
       res.status(201).json(testimonial);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to create testimonial" });
+      handleError(error, res);
+    }
+  }
+);
+
+// Protected endpoint for managing testimonials (requires authentication and ownership)
+router.delete(
+  "/:spaceName/testimonials/:testimonialId",
+  authenticateUser,
+  authorizeSpaceOwner,
+  async (req: Request, res: Response): Promise<void> => {
+    const { testimonialId } = req.params;
+
+    try {
+      const testimonial = await prisma.testimonial.findFirst({
+        where: {
+          id: testimonialId,
+          space: {
+            spaceName: req.params.spaceName,
+            userId: req.user!.id,
+          },
+        },
+      });
+
+      if (!testimonial) {
+        res.status(404).json({ error: "Testimonial not found" });
+        return;
+      }
+
+      await prisma.testimonial.delete({
+        where: {
+          id: testimonialId,
+        },
+      });
+
+      res.status(200).json({ message: "Testimonial deleted successfully" });
+    } catch (error) {
+      handleError(error, res);
     }
   }
 );

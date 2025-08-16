@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { useParams } from "react-router-dom";
 import { FaClipboard } from "react-icons/fa";
+import { api } from "../services/api";
+
 interface Testimonial {
-  id: number;
+  id: string;
   name: string;
   email: string;
   content: string;
   image: string;
 }
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+import config from "../config/env";
+
+const FRONTEND_URL = config.frontendUrl;
 
 const SpacePage = () => {
   const { spaceName } = useParams<{ spaceName: string }>();
@@ -26,12 +28,12 @@ const SpacePage = () => {
   useEffect(() => {
     const fetchSpace = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/space/${spaceName}`);
-        const { data } = response;
+        const response = await api.getSpace(spaceName!);
+        const data = await response.json();
         setTestimonials(data.testimonials || []);
         setLoading(false);
       } catch (error) {
-        console.log("Error fetching space:", error);
+        console.error("Error fetching space:", error);
         setLoading(false);
       }
     };
