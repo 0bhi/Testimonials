@@ -2,17 +2,6 @@ import config from "../config/env";
 
 const BACKEND_URL = config.backendUrl;
 
-// Helper function to get auth token
-const getAuthToken = async (): Promise<string | null> => {
-  try {
-    const token = localStorage.getItem("auth_token");
-    return token;
-  } catch (error) {
-    console.error("Error getting auth token:", error);
-    return null;
-  }
-};
-
 // Generic API call function with authentication
 export const apiCall = async (
   endpoint: string,
