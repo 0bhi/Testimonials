@@ -34,8 +34,14 @@ jobs:
       - name: Install Netlify CLI
         run: npm i -g netlify-cli
 
+      - name: Link Netlify site (non-interactive)
+        run: netlify link --id "$NETLIFY_SITE_ID"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
       - name: Deploy to Netlify (prod)
-        run: netlify deploy --dir=dist --prod
+        run: netlify deploy --site "$NETLIFY_SITE_ID" --dir=dist --prod
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
