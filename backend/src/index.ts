@@ -2,14 +2,31 @@ import { handleRequest } from "./handlers";
 
 export default {
   async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
-    // Handle CORS
+    const requestOrigin = request.headers.get("Origin") || "";
+    const allowedOrigin = env.ALLOWED_ORIGIN || "*";
+    const originToUse =
+      allowedOrigin === "*"
+        ? "*"
+        : requestOrigin === allowedOrigin
+        ? requestOrigin
+        : "";
+
+    const baseCorsHeaders: Record<string, string> = {
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      Vary: "Origin",
+    };
+
+    // Handle CORS preflight
     if (request.method === "OPTIONS") {
       return new Response(null, {
-        status: 200,
+        status: 204,
         headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          ...(originToUse
+            ? { "Access-Control-Allow-Origin": originToUse }
+            : {}),
+          ...baseCorsHeaders,
+          "Access-Control-Max-Age": "86400",
         },
       });
     }
@@ -17,11 +34,9 @@ export default {
     try {
       const response = await handleRequest(request, env);
 
-      // Add CORS headers to all responses
-      const corsHeaders = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      const corsHeaders: Record<string, string> = {
+        ...(originToUse ? { "Access-Control-Allow-Origin": originToUse } : {}),
+        ...baseCorsHeaders,
       };
 
       // Create new response with CORS headers
@@ -41,9 +56,10 @@ export default {
         status: 500,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          ...(originToUse
+            ? { "Access-Control-Allow-Origin": originToUse }
+            : {}),
+          ...baseCorsHeaders,
         },
       });
     }
@@ -53,4 +69,5 @@ export default {
 interface Env {
   DATABASE_URL: string;
   JWT_SECRET: string;
+  ALLOWED_ORIGIN?: string;
 }
