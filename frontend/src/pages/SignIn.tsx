@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import config from "../config/env";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ const SignIn = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/signin", {
+      const response = await fetch(`${config.backendUrl}/auth/signin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
