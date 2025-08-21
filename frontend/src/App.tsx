@@ -1,24 +1,26 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
-import { ClerkProvider } from "@clerk/react-router";
+import { AuthProvider } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
 import Layout from "./Layout";
 import CreateSpace from "./pages/CreateSpace";
 import SpacePage from "./pages/SpacePage";
 import Testimonial from "./pages/Testimonial";
 import EmbedTestimonials from "./pages/EmbedTestimonials";
-import EmbedLayout from "./embedLayout";
+import EmbedLayout from "./EmbedLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
 
 function App() {
   return (
     <BrowserRouter>
-      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <AuthProvider>
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
             <Route
               path="/dashboard"
               element={<ProtectedRoute element={<Dashboard />} />}
@@ -42,7 +44,7 @@ function App() {
             }
           />
         </Routes>
-      </ClerkProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

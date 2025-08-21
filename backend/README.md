@@ -1,68 +1,104 @@
-# Backend Setup
+# Testimonials Backend
 
-## Environment Variables
+A Cloudflare Workers backend for the Testimonials app using Drizzle ORM, NeonDB, and Better Auth.
 
-Create a `.env` file in the backend directory with the following variables:
+## Features
 
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/testimonials_db"
+- User authentication with Better Auth
+- Google OAuth integration
+- Credentials (email/password) authentication
+- Space management
+- Testimonial collection and management
+- RESTful API endpoints
 
-# Clerk Configuration
-CLERK_PUBLISHABLE_KEY="pk_test_your_publishable_key_here"
-CLERK_SECRET_KEY="sk_test_your_secret_key_here"
-CLERK_JWT_KEY="your_jwt_key_here"
+## Setup
 
-# Server Configuration
-PORT=3000
-NODE_ENV=development
-```
-
-## Getting Clerk Keys
-
-1. Go to your Clerk Dashboard
-2. Navigate to API Keys section
-3. Copy the Publishable Key and Secret Key
-4. For JWT Key, go to JWT Templates and copy the signing key
-
-## Installation
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-## Database Setup
+### 2. Environment Variables
 
-```bash
-npx prisma generate
-npx prisma db push
+Create a `.dev.vars` file in the backend directory with the following variables:
+
+```env
+DATABASE_URL=your_neon_database_url
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+AUTH_SECRET=your_auth_secret_key
 ```
 
-## Running the Server
+#### Getting Google OAuth Credentials
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Google+ API
+4. Go to "Credentials" and create an OAuth 2.0 Client ID
+5. Add your domain to the authorized origins
+6. Add your redirect URI: `https://your-domain.com/api/auth/callback/google`
+
+#### Generating AUTH_SECRET
+
+Generate a secure random string for your AUTH_SECRET:
+
+```bash
+openssl rand -base64 32
+```
+
+### 3. Database Setup
+
+The database schema is already set up with the necessary tables. Make sure your NeonDB instance is running and accessible.
+
+### 4. Development
 
 ```bash
 npm run dev
 ```
 
-## Authentication Flow
+### 5. Deployment
 
-The backend now implements proper authentication and authorization:
-
-1. **Authentication Middleware**: Verifies Clerk JWT tokens
-2. **Authorization Middleware**: Ensures users can only access their own spaces
-3. **Protected Routes**: All space management routes require authentication
-4. **Public Routes**: Testimonial submission and viewing are publicly accessible
+```bash
+npm run deploy
+```
 
 ## API Endpoints
 
-### Protected Endpoints (Require Authentication)
+### Authentication
+- `GET /api/auth/signin` - Sign in page
+- `GET /api/auth/signout` - Sign out
+- `GET /api/auth/session` - Get current session
+- `GET /api/auth/callback/google` - Google OAuth callback
 
-- `POST /space/create` - Create a new space
-- `GET /space` - Get all spaces for authenticated user
-- `GET /space/:spaceName` - Get specific space (owner only)
-- `DELETE /space/:spaceName/testimonials/:testimonialId` - Delete testimonial (owner only)
+### Spaces
+- `GET /space` - Get user's spaces (authenticated)
+- `POST /space/create` - Create a new space (authenticated)
+- `GET /space/:spaceName` - Get specific space (authenticated)
+- `GET /space/public/:spaceName` - Get public space data
 
-### Public Endpoints (No Authentication Required)
-
-- `GET /space/public/:spaceName` - Get space data for testimonial pages
+### Testimonials
 - `POST /space/:spaceName/testimonials` - Submit a testimonial
+- `DELETE /space/:spaceName/testimonials/:id` - Delete testimonial (authenticated)
+
+## Authentication Flow
+
+1. Users can sign in with Google OAuth or email/password
+2. Better Auth handles session management with JWT tokens
+3. Protected routes require valid session tokens
+4. Session tokens are automatically refreshed
+
+## Database Schema
+
+The application uses the following tables:
+- `users` - User accounts and authentication data
+- `spaces` - User-created testimonial spaces
+- `testimonials` - Submitted testimonials
+
+## Security
+
+- All passwords are hashed using bcrypt
+- JWT tokens are used for session management
+- CORS is properly configured
+- Input validation is implemented
+- SQL injection protection via Drizzle ORM

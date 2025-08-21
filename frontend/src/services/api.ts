@@ -5,12 +5,8 @@ const BACKEND_URL = config.backendUrl;
 // Helper function to get auth token
 const getAuthToken = async (): Promise<string | null> => {
   try {
-    // Access Clerk from window object
-    if (typeof window !== "undefined" && window.Clerk) {
-      const token = await window.Clerk.session?.getToken();
-      return token || null;
-    }
-    return null;
+    const token = localStorage.getItem("auth_token");
+    return token;
   } catch (error) {
     console.error("Error getting auth token:", error);
     return null;
@@ -20,10 +16,9 @@ const getAuthToken = async (): Promise<string | null> => {
 // Generic API call function with authentication
 export const apiCall = async (
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  token?: string | null
 ): Promise<Response> => {
-  const token = await getAuthToken();
-
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
@@ -51,22 +46,30 @@ export const apiCall = async (
 // Specific API functions
 export const api = {
   // Spaces
-  getSpaces: () => apiCall("/space"),
+  getSpaces: (token?: string | null) => apiCall("/space", {}, token),
 
-  createSpace: (data: {
-    spaceName: string;
-    headerTitle: string;
-    customMessage: string;
-    question1: string;
-    question2: string;
-    question3: string;
-  }) =>
-    apiCall("/space/create", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+  createSpace: (
+    data: {
+      spaceName: string;
+      headerTitle: string;
+      customMessage: string;
+      question1: string;
+      question2: string;
+      question3: string;
+    },
+    token?: string | null
+  ) =>
+    apiCall(
+      "/space/create",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+      token
+    ),
 
-  getSpace: (spaceName: string) => apiCall(`/space/${spaceName}`),
+  getSpace: (spaceName: string, token?: string | null) =>
+    apiCall(`/space/${spaceName}`, {}, token),
 
   // Public endpoints (no authentication required)
   getPublicSpace: (spaceName: string) =>
@@ -89,8 +92,16 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
-  deleteTestimonial: (spaceName: string, testimonialId: string) =>
-    apiCall(`/space/${spaceName}/testimonials/${testimonialId}`, {
-      method: "DELETE",
-    }),
+  deleteTestimonial: (
+    spaceName: string,
+    testimonialId: string,
+    token?: string | null
+  ) =>
+    apiCall(
+      `/space/${spaceName}/testimonials/${testimonialId}`,
+      {
+        method: "DELETE",
+      },
+      token
+    ),
 };

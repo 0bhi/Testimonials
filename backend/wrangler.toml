@@ -1,0 +1,35 @@
+name = "testimonials-backend"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[dev]
+port = 8787
+
+[vars]
+CLERK_JWT_KEY = "sk_test_v09oDIuS3IuoyGxidXGGASgpYZpvFwobl8Yjus5qTT"
+CLERK_PUBLISHABLE_KEY = "pk_test_cXVpY2stYmVhZ2xlLTExLmNsZXJrLmFjY291bnRzLmRldiQ"
+DATABASE_URL = "postgresql://neondb_owner:hT3vBi4gGVao@ep-twilight-night-a53ao2l1-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
+
+[env.production]
+name = "testimonials-backend-prod"
+
+[env.staging]
+name = "testimonials-backend-staging"
+
+[[env.production.vars]]
+CLERK_JWT_KEY = ""
+CLERK_PUBLISHABLE_KEY = ""
+JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
+
+[[env.staging.vars]]
+CLERK_JWT_KEY = "sk_test_v09oDIuS3IuoyGxidXGGASgpYZpvFwobl8Yjus5qTT"
+CLERK_PUBLISHABLE_KEY = "pk_test_cXVpY2stYmVhZ2xlLTExLmNsZXJrLmFjY291bnRzLmRldiQ"
+JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
+
+[[env.production.vars]]
+DATABASE_URL = "postgresql://neondb_owner:hT3vBi4gGVao@ep-twilight-night-a53ao2l1-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+[[env.staging.vars]]
+DATABASE_URL = "postgresql://neondb_owner:hT3vBi4gGVao@ep-twilight-night-a53ao2l1-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"

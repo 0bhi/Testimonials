@@ -1,18 +1,22 @@
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
+import { useSession } from "../contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
   element: React.ReactElement;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element }) => {
-  return (
-    <>
-      <SignedIn>{element}</SignedIn>
-      <SignedOut>
-        <RedirectToSignIn redirectUrl="/dashboard" />
-      </SignedOut>
-    </>
-  );
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (!session) {
+    return <Navigate to="/" replace />;
+  }
+
+  return element;
 };
 
 export default ProtectedRoute;

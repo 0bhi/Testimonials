@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import { useSession } from "../contexts/AuthContext";
 
 const CreateSpace = () => {
   const navigate = useNavigate();
+  const { data: session } = useSession();
   const [spaceName, setSpaceName] = useState("");
   const [headerTitle, setHeaderTitle] = useState("");
   const [customMessage, setCustomMessage] = useState("");
@@ -18,14 +20,18 @@ const CreateSpace = () => {
     try {
       setLoading(true);
       setError(null);
-      await api.createSpace({
-        spaceName,
-        headerTitle,
-        customMessage,
-        question1,
-        question2,
-        question3,
-      });
+      const token = session?.accessToken || null;
+      await api.createSpace(
+        {
+          spaceName,
+          headerTitle,
+          customMessage,
+          question1,
+          question2,
+          question3,
+        },
+        token
+      );
       navigate("/dashboard");
     } catch (error) {
       console.error("Error creating space:", error);
@@ -36,124 +42,115 @@ const CreateSpace = () => {
   };
 
   return (
-    <div className="w-full bg-slate-900 h-screen flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4 py-12">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-lg w-96"
+        className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 shadow-xl w-full max-w-lg"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+        <h2 className="text-3xl font-bold mb-6 text-center text-white">
           Create Space
         </h2>
 
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="spaceName"
-          >
-            Space Name
-          </label>
-          <input
-            id="spaceName"
-            type="text"
-            value={spaceName}
-            onChange={(e) => setSpaceName(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="sr-only" htmlFor="spaceName">
+              Space Name
+            </label>
+            <input
+              id="spaceName"
+              type="text"
+              value={spaceName}
+              onChange={(e) => setSpaceName(e.target.value)}
+              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Space Name"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="headerTitle"
-          >
-            Header Title
-          </label>
-          <input
-            id="headerTitle"
-            type="text"
-            value={headerTitle}
-            onChange={(e) => setHeaderTitle(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
+          <div>
+            <label className="sr-only" htmlFor="headerTitle">
+              Header Title
+            </label>
+            <input
+              id="headerTitle"
+              type="text"
+              value={headerTitle}
+              onChange={(e) => setHeaderTitle(e.target.value)}
+              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Header Title"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="customMessage"
-          >
-            Custom Message
-          </label>
-          <textarea
-            id="customMessage"
-            value={customMessage}
-            onChange={(e) => setCustomMessage(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
+          <div>
+            <label className="sr-only" htmlFor="customMessage">
+              Custom Message
+            </label>
+            <textarea
+              id="customMessage"
+              value={customMessage}
+              onChange={(e) => setCustomMessage(e.target.value)}
+              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Custom Message"
+              rows={4}
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="question1"
-          >
-            Question 1
-          </label>
-          <input
-            id="question1"
-            type="text"
-            value={question1}
-            onChange={(e) => setQuestion1(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
+          <div>
+            <label className="sr-only" htmlFor="question1">
+              Question 1
+            </label>
+            <input
+              id="question1"
+              type="text"
+              value={question1}
+              onChange={(e) => setQuestion1(e.target.value)}
+              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Question 1"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="question2"
-          >
-            Question 2
-          </label>
-          <input
-            id="question2"
-            type="text"
-            value={question2}
-            onChange={(e) => setQuestion2(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
+          <div>
+            <label className="sr-only" htmlFor="question2">
+              Question 2
+            </label>
+            <input
+              id="question2"
+              type="text"
+              value={question2}
+              onChange={(e) => setQuestion2(e.target.value)}
+              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Question 2"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="question3"
-          >
-            Question 3
-          </label>
-          <input
-            id="question3"
-            type="text"
-            value={question3}
-            onChange={(e) => setQuestion3(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
+          <div>
+            <label className="sr-only" htmlFor="question3">
+              Question 3
+            </label>
+            <input
+              id="question3"
+              type="text"
+              value={question3}
+              onChange={(e) => setQuestion3(e.target.value)}
+              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Question 3"
+              required
+            />
+          </div>
         </div>
 
         {error && (
-          <div className="mb-4 text-red-600 text-center text-sm">{error}</div>
+          <div className="mt-4 text-red-400 text-center text-sm">{error}</div>
         )}
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center mt-6">
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all"
           >
             {loading ? "Creating..." : "Create Space"}
           </button>

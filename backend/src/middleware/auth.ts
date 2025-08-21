@@ -1,98 +1,77 @@
-import { Request, Response, NextFunction } from "express";
-import { verifyToken } from "@clerk/backend";
-import { PrismaClient } from "@prisma/client";
+import { verifyToken, getUserByEmail } from "../auth";
+import { spaces, users } from "../db";
+import { eq, and } from "drizzle-orm";
 
-const prisma = new PrismaClient();
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName?: string;
+}
 
-// Extend the Request interface to include user and space
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        firstName: string;
-        lastName?: string;
-      };
-      space?: any;
-    }
-  }
+export interface AuthenticatedRequest extends Request {
+  user?: AuthenticatedUser;
+  space?: any;
+}
+
+interface Env {
+  DATABASE_URL: string;
+  JWT_SECRET: string;
 }
 
 export const authenticateUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+  request: Request,
+  env: Env
+): Promise<AuthenticatedUser | null> => {
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader = request.headers.get("authorization");
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "No token provided" });
+      return null;
     }
 
     const token = authHeader.substring(7); // Remove "Bearer " prefix
 
-    // Verify the token with Clerk
-    const payload = await verifyToken(token, {
-      jwtKey: process.env.CLERK_JWT_KEY!,
-      authorizedParties: [process.env.CLERK_PUBLISHABLE_KEY!],
-    });
-
+    // Verify the JWT token
+    const payload = verifyToken(token, env.JWT_SECRET);
     if (!payload) {
-      return res.status(401).json({ error: "Invalid token" });
+      return null;
     }
 
-    // Extract user information from the token
-    const user = {
-      id: payload.sub as string,
-      email: (payload.email as string) || "",
-      firstName: (payload.first_name as string) || "",
-      lastName: (payload.last_name as string) || undefined,
-    };
+    // Get user details from database
+    const user = await getUserByEmail(payload.email, env);
+    if (!user) {
+      return null;
+    }
 
-    // Add user to request object
-    req.user = user;
-    next();
+    return user;
   } catch (error) {
     console.error("Authentication error:", error);
-    return res.status(401).json({ error: "Authentication failed" });
+    return null;
   }
 };
 
 // Middleware to check if user owns a specific space
 export const authorizeSpaceOwner = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+  request: Request,
+  spaceName: string,
+  userId: string,
+  env: Env
+): Promise<any | null> => {
   try {
-    const { spaceName } = req.params;
-    const userId = req.user?.id;
-
-    if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
+    const { createDb } = await import("../db");
+    const db = createDb(env.DATABASE_URL);
 
     // Check if the space exists and belongs to the user
-    const space = await prisma.space.findFirst({
-      where: {
-        spaceName,
-        userId,
-      },
-    });
+    const space = await db
+      .select()
+      .from(spaces)
+      .where(and(eq(spaces.spaceName, spaceName), eq(spaces.userId, userId)))
+      .limit(1);
 
-    if (!space) {
-      return res
-        .status(403)
-        .json({ error: "Access denied. Space not found or you don't own it." });
-    }
-
-    // Add space to request for use in subsequent middleware/routes
-    req.space = space;
-    next();
+    return space[0] || null;
   } catch (error) {
     console.error("Authorization error:", error);
-    return res.status(500).json({ error: "Authorization failed" });
+    return null;
   }
 };
