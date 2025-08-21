@@ -5,6 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import config from "../config/env";
 
 interface User {
   id: string;
@@ -60,8 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return null;
       }
 
-      // In a real app, you would validate the token with your backend
-      const response = await fetch("/api/auth/session", {
+      const response = await fetch(`${config.backendUrl}/api/auth/session`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -79,7 +79,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signIn = async () => {
-    // Get the session data after successful authentication
     const sessionData = await getSession();
     if (sessionData?.user) {
       setUser(sessionData.user);

@@ -28,7 +28,7 @@ const SignUp = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${config.backendUrl}/auth/signup`, {
+      const response = await fetch(`${config.backendUrl}/api/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
