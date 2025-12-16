@@ -33,6 +33,7 @@ export const spaces = pgTable(
     question1: varchar("question1", { length: 500 }).notNull(),
     question2: varchar("question2", { length: 500 }).notNull(),
     question3: varchar("question3", { length: 500 }).notNull(),
+    template: varchar("template", { length: 50 }).default("modern").notNull(),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

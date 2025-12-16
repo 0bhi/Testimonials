@@ -93,4 +93,19 @@ export const api = {
       },
       token
     ),
+
+  // Update space template
+  updateTemplate: (
+    spaceName: string,
+    template: string,
+    token?: string | null
+  ) =>
+    apiCall(
+      `/space/${spaceName}/template`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ template }),
+      },
+      token
+    ),
 };

@@ -21191,6 +21191,7 @@ var init_schema2 = __esm({
         question1: varchar("question1", { length: 500 }).notNull(),
         question2: varchar("question2", { length: 500 }).notNull(),
         question3: varchar("question3", { length: 500 }).notNull(),
+        template: varchar("template", { length: 50 }).default("modern").notNull(),
         userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
         createdAt: timestamp("created_at").defaultNow(),
         updatedAt: timestamp("updated_at").defaultNow()
@@ -21243,13 +21244,13 @@ var init_db2 = __esm({
   }
 });
 
-// .wrangler/tmp/bundle-v9tJzX/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-TQ17DI/middleware-loader.entry.ts
 init_modules_watch_stub();
 init_virtual_unenv_global_polyfill_cloudflare_unenv_preset_node_process();
 init_virtual_unenv_global_polyfill_cloudflare_unenv_preset_node_console();
 init_performance2();
 
-// .wrangler/tmp/bundle-v9tJzX/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-TQ17DI/middleware-insertion-facade.js
 init_modules_watch_stub();
 init_virtual_unenv_global_polyfill_cloudflare_unenv_preset_node_process();
 init_virtual_unenv_global_polyfill_cloudflare_unenv_preset_node_console();
@@ -23347,6 +23348,36 @@ spaceRoutes.post("/:spaceName/testimonials", async (c) => {
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
+spaceRoutes.patch("/:spaceName/template", authenticateUser, async (c) => {
+  try {
+    const user = c.get("user");
+    const spaceName = c.req.param("spaceName");
+    const env2 = c.env;
+    const db = createDb(env2.DATABASE_URL);
+    const space = await authorizeSpaceOwner(spaceName, user.id, env2);
+    if (!space) {
+      return c.json(
+        {
+          error: "Access denied. Space not found or you don't own it."
+        },
+        403
+      );
+    }
+    const body = await c.req.json();
+    const { template } = body;
+    if (!template) {
+      return c.json({ error: "Template is required" }, 400);
+    }
+    const updatedSpace = await db.update(spaces).set({ template }).where(and(eq(spaces.spaceName, spaceName), eq(spaces.userId, user.id))).returning();
+    if (updatedSpace.length === 0) {
+      return c.json({ error: "Space not found" }, 404);
+    }
+    return c.json(updatedSpace[0]);
+  } catch (error3) {
+    console.error("Error in handleUpdateTemplate:", error3);
+    return c.json({ error: "Internal Server Error" }, 500);
+  }
+});
 spaceRoutes.delete(
   "/:spaceName/testimonials/:testimonialId",
   authenticateUser,
@@ -23466,7 +23497,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env2, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-v9tJzX/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-TQ17DI/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -23502,7 +23533,7 @@ function __facade_invoke__(request, env2, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-v9tJzX/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-TQ17DI/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

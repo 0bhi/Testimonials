@@ -211,6 +211,48 @@ spaceRoutes.post("/:spaceName/testimonials", async (c) => {
   }
 });
 
+// Update space template (requires authentication and ownership)
+spaceRoutes.patch("/:spaceName/template", authenticateUser, async (c) => {
+  try {
+    const user = c.get("user");
+    const spaceName = c.req.param("spaceName");
+    const env = c.env;
+    const db = createDb(env.DATABASE_URL);
+
+    const space = await authorizeSpaceOwner(spaceName, user.id, env);
+    if (!space) {
+      return c.json(
+        {
+          error: "Access denied. Space not found or you don't own it.",
+        },
+        403
+      );
+    }
+
+    const body = await c.req.json<{ template: string }>();
+    const { template } = body;
+
+    if (!template) {
+      return c.json({ error: "Template is required" }, 400);
+    }
+
+    const updatedSpace = await db
+      .update(spaces)
+      .set({ template })
+      .where(and(eq(spaces.spaceName, spaceName), eq(spaces.userId, user.id)))
+      .returning();
+
+    if (updatedSpace.length === 0) {
+      return c.json({ error: "Space not found" }, 404);
+    }
+
+    return c.json(updatedSpace[0]);
+  } catch (error) {
+    console.error("Error in handleUpdateTemplate:", error);
+    return c.json({ error: "Internal Server Error" }, 500);
+  }
+});
+
 // Delete testimonial (requires authentication and ownership)
 spaceRoutes.delete(
   "/:spaceName/testimonials/:testimonialId",
