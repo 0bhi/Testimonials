@@ -1,5 +1,6 @@
+import { Context, Next } from "hono";
 import { verifyToken, getUserByEmail } from "../auth";
-import { spaces, users } from "../db";
+import { spaces } from "../db";
 import { eq, and } from "drizzle-orm";
 
 export interface AuthenticatedUser {
@@ -9,51 +10,50 @@ export interface AuthenticatedUser {
   lastName?: string;
 }
 
-export interface AuthenticatedRequest extends Request {
-  user?: AuthenticatedUser;
-  space?: any;
-}
-
 interface Env {
   DATABASE_URL: string;
   JWT_SECRET: string;
+  ALLOWED_ORIGIN?: string;
 }
 
+// Hono middleware to authenticate user
 export const authenticateUser = async (
-  request: Request,
-  env: Env
-): Promise<AuthenticatedUser | null> => {
+  c: Context<{ Variables: { user: AuthenticatedUser } }>,
+  next: Next
+) => {
   try {
-    const authHeader = request.headers.get("authorization");
+    const authHeader = c.req.header("authorization");
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return null;
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
     const token = authHeader.substring(7); // Remove "Bearer " prefix
+    const env = c.env as Env;
 
     // Verify the JWT token
     const payload = verifyToken(token, env.JWT_SECRET);
     if (!payload) {
-      return null;
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
     // Get user details from database
     const user = await getUserByEmail(payload.email, env);
     if (!user) {
-      return null;
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
-    return user;
+    // Set user in context
+    c.set("user", user);
+    await next();
   } catch (error) {
     console.error("Authentication error:", error);
-    return null;
+    return c.json({ error: "Unauthorized" }, 401);
   }
 };
 
-// Middleware to check if user owns a specific space
+// Helper function to check if user owns a specific space
 export const authorizeSpaceOwner = async (
-  request: Request,
   spaceName: string,
   userId: string,
   env: Env

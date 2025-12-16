@@ -7,9 +7,6 @@ interface Space {
   spaceName: string;
   headerTitle: string;
   customMessage: string;
-  question1: string;
-  question2: string;
-  question3: string;
 }
 
 const Testimonial = () => {
@@ -17,6 +14,8 @@ const Testimonial = () => {
   const [space, setSpace] = useState<Space | null>(null);
   const [content, setContent] = useState("");
   const [image, setImage] = useState<string | null>(null);
+  const [mediaName, setMediaName] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -37,14 +36,34 @@ const Testimonial = () => {
     fetchSpace();
   }, [spaceName]);
 
+  const handleMediaFile = (file: File | null) => {
+    if (!file) return;
+
+    setMediaName(file.name);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        setImage(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const trimmedContent = content.trim();
+    if (!trimmedContent) {
+      setError("Please write your feedback before submitting.");
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
       await api.submitTestimonial(spaceName!, {
-        content,
+        content: trimmedContent,
         image: image || undefined,
         email,
         name,
@@ -77,31 +96,17 @@ const Testimonial = () => {
               <p className="text-gray-300 mb-4 text-center">
                 {space.customMessage}
               </p>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">
-                <p className="text-gray-200 mb-2">{space.question1}</p>
-                <p className="text-gray-200 mb-2">{space.question2}</p>
-                <p className="text-gray-200">{space.question3}</p>
-              </div>
             </>
           )}
           <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
             <div>
-              <label className="text-gray-300 mb-2 block">Content</label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full p-3 rounded-lg bg-slate-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows={5}
-                required
-              />
-            </div>
-            <div>
-              <label className="text-gray-300 mb-2 block">Image URL</label>
+              <label className="text-gray-300 mb-2 block">Name</label>
               <input
                 type="text"
-                value={image || ""}
-                onChange={(e) => setImage(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full p-3 rounded-lg bg-slate-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
             <div>
@@ -115,13 +120,67 @@ const Testimonial = () => {
               />
             </div>
             <div>
-              <label className="text-gray-300 mb-2 block">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+              <label className="text-gray-300 mb-2 block">Your Feedback</label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
                 className="w-full p-3 rounded-lg bg-slate-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={5}
+                placeholder="Share your experience or feedback..."
                 required
+              />
+            </div>
+            <div>
+              <label className="text-gray-300 mb-2 block">
+                Image or Video (optional)
+              </label>
+              <div
+                className={`w-full border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                  isDragging
+                    ? "border-blue-500 bg-slate-800/60"
+                    : "border-gray-700 bg-slate-800/40 hover:border-blue-500 hover:bg-slate-800/60"
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) {
+                    handleMediaFile(file);
+                  }
+                }}
+                onClick={() => {
+                  const input = document.getElementById(
+                    "media-input"
+                  ) as HTMLInputElement | null;
+                  input?.click();
+                }}
+              >
+                <p className="text-gray-300 mb-1">
+                  Drag & drop an image or video here, or click to browse
+                </p>
+                {mediaName && (
+                  <p className="text-xs text-blue-400 mt-2">
+                    Selected: {mediaName}
+                  </p>
+                )}
+              </div>
+              <input
+                id="media-input"
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  handleMediaFile(file);
+                }}
               />
             </div>
             {error && <div className="text-red-400 text-sm mb-2">{error}</div>}

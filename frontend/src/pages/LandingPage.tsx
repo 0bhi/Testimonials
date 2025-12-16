@@ -1,8 +1,14 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import testimoImage from "../assets/testimo.webp";
+import { useSession } from "../contexts/AuthContext";
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { data: session, status } = useSession();
+
+  if (status === "authenticated" && session) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">

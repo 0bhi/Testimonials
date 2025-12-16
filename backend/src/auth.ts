@@ -30,7 +30,10 @@ export const hashPassword = async (password: string): Promise<string> => {
 };
 
 // Helper function to verify passwords
-export const verifyPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+export const verifyPassword = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
   return await bcrypt.compare(password, hashedPassword);
 };
 
@@ -42,12 +45,15 @@ export const generateToken = (user: User, secret: string): string => {
       email: user.email,
     },
     secret,
-    { expiresIn: '7d' }
+    { expiresIn: "7d" }
   );
 };
 
 // Verify JWT token
-export const verifyToken = (token: string, secret: string): JWTPayload | null => {
+export const verifyToken = (
+  token: string,
+  secret: string
+): JWTPayload | null => {
   try {
     return jwt.verify(token, secret) as JWTPayload;
   } catch (error) {
@@ -56,7 +62,10 @@ export const verifyToken = (token: string, secret: string): JWTPayload | null =>
 };
 
 // Get user by email
-export const getUserByEmail = async (email: string, env: Env): Promise<User | null> => {
+export const getUserByEmail = async (
+  email: string,
+  env: Env
+): Promise<User | null> => {
   const db = createDb(env.DATABASE_URL);
   const user = await db
     .select()
@@ -77,15 +86,18 @@ export const getUserByEmail = async (email: string, env: Env): Promise<User | nu
 };
 
 // Create new user
-export const createUser = async (userData: {
-  email: string;
-  firstName: string;
-  lastName?: string;
-  password?: string;
-  googleId?: string;
-}, env: Env): Promise<User> => {
+export const createUser = async (
+  userData: {
+    email: string;
+    firstName: string;
+    lastName?: string;
+    password?: string;
+    googleId?: string;
+  },
+  env: Env
+): Promise<User> => {
   const db = createDb(env.DATABASE_URL);
-  
+
   const newUser = await db
     .insert(users)
     .values({
@@ -93,7 +105,9 @@ export const createUser = async (userData: {
       email: userData.email,
       firstName: userData.firstName,
       lastName: userData.lastName,
-      password: userData.password ? await hashPassword(userData.password) : null,
+      password: userData.password
+        ? await hashPassword(userData.password)
+        : null,
       googleId: userData.googleId || null,
     })
     .returning();

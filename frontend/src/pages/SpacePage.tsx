@@ -137,7 +137,7 @@ const SpacePage = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="text-gray-300 text-base">
+                          <div className="text-gray-300 text-base whitespace-pre-line leading-relaxed break-words">
                             {testimonial.content}
                           </div>
                         </div>

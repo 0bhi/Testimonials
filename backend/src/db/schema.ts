@@ -8,6 +8,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 
+// IMPORTANT: keep this table name in sync with your DB and migrations.
+// The initial Drizzle migration creates a table named "users", so we use "users" here.
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   firstName: varchar("first_name", { length: 255 }).notNull(),

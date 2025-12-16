@@ -9,9 +9,9 @@ const CreateSpace = () => {
   const [spaceName, setSpaceName] = useState("");
   const [headerTitle, setHeaderTitle] = useState("");
   const [customMessage, setCustomMessage] = useState("");
-  const [question1, setQuestion1] = useState("");
-  const [question2, setQuestion2] = useState("");
-  const [question3, setQuestion3] = useState("");
+  const [question1] = useState("");
+  const [question2] = useState("");
+  const [question3] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,48 +98,10 @@ const CreateSpace = () => {
           </div>
 
           <div>
-            <label className="sr-only" htmlFor="question1">
-              Question 1
-            </label>
-            <input
-              id="question1"
-              type="text"
-              value={question1}
-              onChange={(e) => setQuestion1(e.target.value)}
-              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Question 1"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="sr-only" htmlFor="question2">
-              Question 2
-            </label>
-            <input
-              id="question2"
-              type="text"
-              value={question2}
-              onChange={(e) => setQuestion2(e.target.value)}
-              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Question 2"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="sr-only" htmlFor="question3">
-              Question 3
-            </label>
-            <input
-              id="question3"
-              type="text"
-              value={question3}
-              onChange={(e) => setQuestion3(e.target.value)}
-              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Question 3"
-              required
-            />
+            <p className="text-gray-400 text-sm">
+              Guests will see your header and custom message, then a single
+              feedback box (no questions).
+            </p>
           </div>
         </div>
 

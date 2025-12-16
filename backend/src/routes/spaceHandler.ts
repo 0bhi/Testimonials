@@ -1,5 +1,10 @@
+import { Hono } from "hono";
 import { createDb, spaces, testimonials } from "../db";
-import { authenticateUser, authorizeSpaceOwner } from "../middleware/auth";
+import {
+  authenticateUser,
+  authorizeSpaceOwner,
+  AuthenticatedUser,
+} from "../middleware/auth";
 import { eq, and, desc } from "drizzle-orm";
 
 interface Env {
@@ -23,315 +28,232 @@ interface TestimonialBody {
   email: string;
 }
 
-export async function spaceHandler(
-  request: Request,
-  path: string,
-  env: Env
-): Promise<Response> {
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  };
+export const spaceRoutes = new Hono<{
+  Bindings: Env;
+  Variables: { user: AuthenticatedUser };
+}>();
 
+// Create space endpoint
+spaceRoutes.post("/create", authenticateUser, async (c) => {
   try {
-    // Extract space name from path
-    const pathParts = path.split("/").filter(Boolean);
-    const spaceName = pathParts[1]; // /space/[spaceName] or /space/public/[spaceName]
+    const user = c.get("user");
+    const env = c.env;
+    const db = createDb(env.DATABASE_URL);
 
-    // Handle different routes
-    if (path === "/space/create" && request.method === "POST") {
-      return await handleCreateSpace(request, env);
-    } else if (path === "/space" && request.method === "GET") {
-      return await handleGetSpaces(request, env);
-    } else if (path.startsWith("/space/public/") && request.method === "GET") {
-      const publicSpaceName = pathParts[2];
-      return await handleGetPublicSpace(publicSpaceName, env);
-    } else if (
-      path.startsWith("/space/") &&
-      path.endsWith("/testimonials") &&
-      request.method === "POST"
-    ) {
-      return await handleSubmitTestimonial(spaceName, request, env);
-    } else if (
-      path.startsWith("/space/") &&
-      path.includes("/testimonials/") &&
-      request.method === "DELETE"
-    ) {
-      const testimonialId = pathParts[3];
-      return await handleDeleteTestimonial(
-        spaceName,
-        testimonialId,
-        request,
-        env
-      );
-    } else if (path.startsWith("/space/") && request.method === "GET") {
-      return await handleGetSpace(spaceName, request, env);
-    }
-
-    return new Response(JSON.stringify({ error: "Not Found" }), {
-      status: 404,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
-  } catch (error) {
-    console.error("Error in spaceHandler:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
-  }
-}
-
-async function handleCreateSpace(
-  request: Request,
-  env: Env
-): Promise<Response> {
-  const db = createDb(env.DATABASE_URL);
-  const user = await authenticateUser(request, env);
-  if (!user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const body = (await request.json()) as CreateSpaceBody;
-  const {
-    spaceName,
-    headerTitle,
-    customMessage,
-    question1,
-    question2,
-    question3,
-  } = body;
-
-  // Check if space name already exists for this user
-  const existingSpace = await db
-    .select()
-    .from(spaces)
-    .where(and(eq(spaces.spaceName, spaceName), eq(spaces.userId, user.id)))
-    .limit(1);
-
-  if (existingSpace.length > 0) {
-    return new Response(
-      JSON.stringify({ error: "Space name already exists" }),
-      { status: 409, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  const newSpace = await db
-    .insert(spaces)
-    .values({
+    const body = await c.req.json<CreateSpaceBody>();
+    const {
       spaceName,
       headerTitle,
       customMessage,
       question1,
       question2,
       question3,
-      userId: user.id,
-    })
-    .returning();
+    } = body;
 
-  return new Response(JSON.stringify(newSpace[0]), {
-    status: 201,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+    // Check if space name already exists for this user
+    const existingSpace = await db
+      .select()
+      .from(spaces)
+      .where(and(eq(spaces.spaceName, spaceName), eq(spaces.userId, user.id)))
+      .limit(1);
 
-async function handleGetSpaces(request: Request, env: Env): Promise<Response> {
-  const db = createDb(env.DATABASE_URL);
-  const user = await authenticateUser(request, env);
-  if (!user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
+    if (existingSpace.length > 0) {
+      return c.json({ error: "Space name already exists" }, 409);
+    }
+
+    const newSpace = await db
+      .insert(spaces)
+      .values({
+        spaceName,
+        headerTitle,
+        customMessage,
+        question1,
+        question2,
+        question3,
+        userId: user.id,
+      })
+      .returning();
+
+    return c.json(newSpace[0], 201);
+  } catch (error) {
+    console.error("Error in handleCreateSpace:", error);
+    return c.json({ error: "Internal Server Error" }, 500);
   }
+});
 
-  const userSpaces = await db
-    .select()
-    .from(spaces)
-    .where(eq(spaces.userId, user.id))
-    .orderBy(desc(spaces.createdAt));
+// Get all spaces for authenticated user
+spaceRoutes.get("/", authenticateUser, async (c) => {
+  try {
+    const user = c.get("user");
+    const env = c.env;
+    const db = createDb(env.DATABASE_URL);
 
-  return new Response(JSON.stringify(userSpaces), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+    const userSpaces = await db
+      .select()
+      .from(spaces)
+      .where(eq(spaces.userId, user.id))
+      .orderBy(desc(spaces.createdAt));
 
-async function handleGetSpace(
-  spaceName: string,
-  request: Request,
-  env: Env
-): Promise<Response> {
-  const db = createDb(env.DATABASE_URL);
-  const user = await authenticateUser(request, env);
-  if (!user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
+    return c.json(userSpaces);
+  } catch (error) {
+    console.error("Error in handleGetSpaces:", error);
+    return c.json({ error: "Internal Server Error" }, 500);
   }
+});
 
-  const space = await authorizeSpaceOwner(request, spaceName, user.id, env);
-  if (!space) {
-    return new Response(
-      JSON.stringify({
-        error: "Access denied. Space not found or you don't own it.",
-      }),
-      { status: 403, headers: { "Content-Type": "application/json" } }
-    );
+// Get public space (no authentication required) - must come before /:spaceName
+spaceRoutes.get("/public/:spaceName", async (c) => {
+  try {
+    const spaceName = c.req.param("spaceName");
+    const env = c.env;
+    const db = createDb(env.DATABASE_URL);
+
+    const space = await db
+      .select()
+      .from(spaces)
+      .where(eq(spaces.spaceName, spaceName))
+      .limit(1);
+
+    if (space.length === 0) {
+      return c.json({ error: "Space not found" }, 404);
+    }
+
+    const spaceData = space[0];
+    const spaceTestimonials = await db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.spaceId, spaceData.id));
+
+    return c.json({ ...spaceData, testimonials: spaceTestimonials });
+  } catch (error) {
+    console.error("Error in handleGetPublicSpace:", error);
+    return c.json({ error: "Internal Server Error" }, 500);
   }
+});
 
-  // Get space with testimonials
-  const spaceWithTestimonials = await db
-    .select()
-    .from(spaces)
-    .where(and(eq(spaces.spaceName, spaceName), eq(spaces.userId, user.id)))
-    .limit(1);
+// Get specific space with testimonials (authenticated) - must come after /public/:spaceName
+spaceRoutes.get("/:spaceName", authenticateUser, async (c) => {
+  try {
+    const user = c.get("user");
+    const spaceName = c.req.param("spaceName");
+    const env = c.env;
+    const db = createDb(env.DATABASE_URL);
 
-  if (spaceWithTestimonials.length === 0) {
-    return new Response(JSON.stringify({ error: "Space not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+    const space = await authorizeSpaceOwner(spaceName, user.id, env);
+    if (!space) {
+      return c.json(
+        {
+          error: "Access denied. Space not found or you don't own it.",
+        },
+        403
+      );
+    }
+
+    // Get space with testimonials
+    const spaceWithTestimonials = await db
+      .select()
+      .from(spaces)
+      .where(and(eq(spaces.spaceName, spaceName), eq(spaces.userId, user.id)))
+      .limit(1);
+
+    if (spaceWithTestimonials.length === 0) {
+      return c.json({ error: "Space not found" }, 404);
+    }
+
+    const spaceData = spaceWithTestimonials[0];
+    const spaceTestimonials = await db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.spaceId, spaceData.id));
+
+    return c.json({ ...spaceData, testimonials: spaceTestimonials });
+  } catch (error) {
+    console.error("Error in handleGetSpace:", error);
+    return c.json({ error: "Internal Server Error" }, 500);
   }
+});
 
-  const spaceData = spaceWithTestimonials[0];
-  const spaceTestimonials = await db
-    .select()
-    .from(testimonials)
-    .where(eq(testimonials.spaceId, spaceData.id));
+// Submit testimonial to a space (no authentication required)
+spaceRoutes.post("/:spaceName/testimonials", async (c) => {
+  try {
+    const spaceName = c.req.param("spaceName");
+    const env = c.env;
+    const db = createDb(env.DATABASE_URL);
 
-  return new Response(
-    JSON.stringify({ ...spaceData, testimonials: spaceTestimonials }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
-}
+    const body = await c.req.json<TestimonialBody>();
+    const { content, image, name, email } = body;
 
-async function handleGetPublicSpace(
-  spaceName: string,
-  env: Env
-): Promise<Response> {
-  const db = createDb(env.DATABASE_URL);
-  const space = await db
-    .select()
-    .from(spaces)
-    .where(eq(spaces.spaceName, spaceName))
-    .limit(1);
+    const space = await db
+      .select()
+      .from(spaces)
+      .where(eq(spaces.spaceName, spaceName))
+      .limit(1);
 
-  if (space.length === 0) {
-    return new Response(JSON.stringify({ error: "Space not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+    if (space.length === 0) {
+      return c.json({ error: "Space not found" }, 404);
+    }
+
+    const newTestimonial = await db
+      .insert(testimonials)
+      .values({
+        content,
+        image,
+        name,
+        email,
+        spaceId: space[0].id,
+      })
+      .returning();
+
+    return c.json(newTestimonial[0], 201);
+  } catch (error) {
+    console.error("Error in handleSubmitTestimonial:", error);
+    return c.json({ error: "Internal Server Error" }, 500);
   }
+});
 
-  const spaceData = space[0];
-  const spaceTestimonials = await db
-    .select()
-    .from(testimonials)
-    .where(eq(testimonials.spaceId, spaceData.id));
+// Delete testimonial (requires authentication and ownership)
+spaceRoutes.delete(
+  "/:spaceName/testimonials/:testimonialId",
+  authenticateUser,
+  async (c) => {
+    try {
+      const user = c.get("user");
+      const spaceName = c.req.param("spaceName");
+      const testimonialId = c.req.param("testimonialId");
+      const env = c.env;
+      const db = createDb(env.DATABASE_URL);
 
-  return new Response(
-    JSON.stringify({ ...spaceData, testimonials: spaceTestimonials }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
-}
+      const space = await authorizeSpaceOwner(spaceName, user.id, env);
+      if (!space) {
+        return c.json(
+          {
+            error: "Access denied. Space not found or you don't own it.",
+          },
+          403
+        );
+      }
 
-async function handleSubmitTestimonial(
-  spaceName: string,
-  request: Request,
-  env: Env
-): Promise<Response> {
-  const db = createDb(env.DATABASE_URL);
-  const body = (await request.json()) as TestimonialBody;
-  const { content, image, name, email } = body;
+      const testimonial = await db
+        .select()
+        .from(testimonials)
+        .where(
+          and(
+            eq(testimonials.id, testimonialId),
+            eq(testimonials.spaceId, space.id)
+          )
+        )
+        .limit(1);
 
-  const space = await db
-    .select()
-    .from(spaces)
-    .where(eq(spaces.spaceName, spaceName))
-    .limit(1);
+      if (testimonial.length === 0) {
+        return c.json({ error: "Testimonial not found" }, 404);
+      }
 
-  if (space.length === 0) {
-    return new Response(JSON.stringify({ error: "Space not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+      await db.delete(testimonials).where(eq(testimonials.id, testimonialId));
+
+      return c.json({ message: "Testimonial deleted successfully" });
+    } catch (error) {
+      console.error("Error in handleDeleteTestimonial:", error);
+      return c.json({ error: "Internal Server Error" }, 500);
+    }
   }
-
-  const newTestimonial = await db
-    .insert(testimonials)
-    .values({
-      content,
-      image,
-      name,
-      email,
-      spaceId: space[0].id,
-    })
-    .returning();
-
-  return new Response(JSON.stringify(newTestimonial[0]), {
-    status: 201,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-async function handleDeleteTestimonial(
-  spaceName: string,
-  testimonialId: string,
-  request: Request,
-  env: Env
-): Promise<Response> {
-  const db = createDb(env.DATABASE_URL);
-  const user = await authenticateUser(request, env);
-  if (!user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const space = await authorizeSpaceOwner(request, spaceName, user.id, env);
-  if (!space) {
-    return new Response(
-      JSON.stringify({
-        error: "Access denied. Space not found or you don't own it.",
-      }),
-      { status: 403, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  const testimonial = await db
-    .select()
-    .from(testimonials)
-    .where(
-      and(
-        eq(testimonials.id, testimonialId),
-        eq(testimonials.spaceId, space.id)
-      )
-    )
-    .limit(1);
-
-  if (testimonial.length === 0) {
-    return new Response(JSON.stringify({ error: "Testimonial not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  await db.delete(testimonials).where(eq(testimonials.id, testimonialId));
-
-  return new Response(
-    JSON.stringify({ message: "Testimonial deleted successfully" }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
-}
+);
