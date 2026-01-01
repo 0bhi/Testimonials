@@ -1,6 +1,6 @@
 node_modules
+dist
+logs
+*.log
 # Keep environment variables out of version control
 .env
-# Wrangler local dev secrets (never commit)
-.dev.vars
-.dev.vars.*
