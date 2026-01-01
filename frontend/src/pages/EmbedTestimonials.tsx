@@ -10,17 +10,29 @@ const EmbedTestimonials = () => {
   const [loading, setLoading] = useState(true);
   const [templateId, setTemplateId] = useState<string>("modern");
 
+  // Get URL parameters for customization
+  const limit = parseInt(searchParams.get("limit") || "0", 10); // 0 means show all
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
   useEffect(() => {
     const fetchSpace = async () => {
       try {
         const response = await api.getPublicSpace(spaceName!);
         const data = await response.json();
-        setTestimonials(data.testimonials || []);
+        let allTestimonials = data.testimonials || [];
 
-        // Get template from URL parameter or space data, default to "modern"
-        const urlTemplate = searchParams.get("template");
+        // Apply pagination if limit is specified
+        if (limit > 0) {
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          allTestimonials = allTestimonials.slice(startIndex, endIndex);
+        }
+
+        setTestimonials(allTestimonials);
+
+        // Get template from space data, default to "modern"
         const spaceTemplate = data.template || "modern";
-        setTemplateId(urlTemplate || spaceTemplate);
+        setTemplateId(spaceTemplate);
 
         setLoading(false);
       } catch (error) {
@@ -29,12 +41,23 @@ const EmbedTestimonials = () => {
       }
     };
     fetchSpace();
-  }, [spaceName, searchParams]);
+  }, [spaceName, limit, page]);
 
   if (loading) {
     return (
-      <div className="min-h-[300px] bg-slate-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-[200px] flex items-center justify-center bg-transparent">
+        <div className="text-slate-600">Loading testimonials...</div>
+      </div>
+    );
+  }
+
+  if (testimonials.length === 0) {
+    return (
+      <div className="min-h-[200px] flex items-center justify-center bg-transparent">
+        <div className="text-slate-500 text-center">
+          <p className="text-lg mb-2">No testimonials yet</p>
+          <p className="text-sm">Check back soon!</p>
+        </div>
       </div>
     );
   }

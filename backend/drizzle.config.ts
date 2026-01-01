@@ -1,4 +1,5 @@
 import { defineConfig } from "drizzle-kit";
+import "dotenv/config";
 
 export default defineConfig({
   schema: "./src/db/schema.ts",
@@ -6,8 +7,7 @@ export default defineConfig({
   driver: "pg",
   dbCredentials: {
     // Use the SAME database as your Worker (`DATABASE_URL` in `.env` / `wrangler.toml`)
-    connectionString:
-      "postgresql://neondb_owner:npg_ajGzV1wmdX7Y@ep-sweet-tree-a1so7or2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+    connectionString: process.env.DATABASE_URL || "",
   },
   verbose: true,
   strict: true,

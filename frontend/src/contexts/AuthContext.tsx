@@ -71,6 +71,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const sessionData = await response.json();
         return sessionData;
       }
+
+      // Log error details for debugging
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Session error:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+      });
+
+      // If token is invalid, clear it
+      if (response.status === 401) {
+        localStorage.removeItem("auth_token");
+      }
+
       return null;
     } catch (error) {
       console.error("Error getting session:", error);

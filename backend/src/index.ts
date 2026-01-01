@@ -1,53 +1,63 @@
-import { Hono } from "hono";
-import { cors } from "hono/cors";
+import "dotenv/config";
+import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { authRoutes } from "./routes/authHandler";
 import { spaceRoutes } from "./routes/spaceHandler";
+import { getEnvConfig } from "./config/env";
 
-interface Env {
-  DATABASE_URL: string;
-  JWT_SECRET: string;
-  ALLOWED_ORIGIN?: string;
-}
+// Validate environment variables on startup
+const config = getEnvConfig();
 
-const app = new Hono<{ Bindings: Env }>();
+const app = express();
 
-// CORS middleware
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// CORS middleware with validated config
 app.use(
-  "*",
   cors({
-    origin: (origin, c) => {
-      const allowedOrigin = c.env.ALLOWED_ORIGIN || "*";
-      if (allowedOrigin === "*") {
-        return "*";
-      }
-      return origin === allowedOrigin ? origin : "";
-    },
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
-    exposeHeaders: ["Content-Length"],
+    origin: config.server.allowedOrigin,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Content-Length"],
     maxAge: 86400,
     credentials: true,
   })
 );
 
 // Health check route
-app.get("/", (c) => {
-  return c.text("Hello, world!");
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello, world!");
 });
 
 // Mount route handlers
-app.route("/api/auth", authRoutes);
-app.route("/space", spaceRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/space", spaceRoutes);
 
 // 404 handler
-app.notFound((c) => {
-  return c.json({ error: "Not Found" }, 404);
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: "Not Found" });
 });
 
 // Error handler
-app.onError((err, c) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Error handling request:", err);
-  return c.json({ error: "Internal Server Error" }, 500);
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
+const PORT = config.server.port;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📦 Environment: ${config.server.nodeEnv}`);
+  console.log(
+    `🌐 Allowed origins: ${
+      Array.isArray(config.server.allowedOrigin)
+        ? config.server.allowedOrigin.join(", ")
+        : config.server.allowedOrigin
+    }`
+  );
 });
 
 export default app;

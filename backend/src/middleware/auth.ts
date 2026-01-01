@@ -1,7 +1,9 @@
-import { Context, Next } from "hono";
+import { Request, Response, NextFunction } from "express";
 import { verifyToken, getUserByEmail } from "../auth";
 import { spaces } from "../db";
 import { eq, and } from "drizzle-orm";
+import { createDb } from "../db";
+import { getEnv, getJwtSecret, getDatabaseUrl } from "../config/env";
 
 export interface AuthenticatedUser {
   id: string;
@@ -10,57 +12,60 @@ export interface AuthenticatedUser {
   lastName?: string;
 }
 
-interface Env {
-  DATABASE_URL: string;
-  JWT_SECRET: string;
-  ALLOWED_ORIGIN?: string;
+// Extend Express Request to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthenticatedUser;
+    }
+  }
 }
 
-// Hono middleware to authenticate user
+// Express middleware to authenticate user
 export const authenticateUser = async (
-  c: Context<{ Variables: { user: AuthenticatedUser } }>,
-  next: Next
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
   try {
-    const authHeader = c.req.header("authorization");
+    const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return c.json({ error: "Unauthorized" }, 401);
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const token = authHeader.substring(7); // Remove "Bearer " prefix
-    const env = c.env as Env;
+    const jwtSecret = getJwtSecret();
+    const env = getEnv();
 
     // Verify the JWT token
-    const payload = verifyToken(token, env.JWT_SECRET);
+    const payload = verifyToken(token, jwtSecret);
     if (!payload) {
-      return c.json({ error: "Unauthorized" }, 401);
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Get user details from database
     const user = await getUserByEmail(payload.email, env);
     if (!user) {
-      return c.json({ error: "Unauthorized" }, 401);
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Set user in context
-    c.set("user", user);
-    await next();
+    // Set user in request
+    req.user = user;
+    next();
   } catch (error) {
     console.error("Authentication error:", error);
-    return c.json({ error: "Unauthorized" }, 401);
+    return res.status(401).json({ error: "Unauthorized" });
   }
 };
 
 // Helper function to check if user owns a specific space
 export const authorizeSpaceOwner = async (
   spaceName: string,
-  userId: string,
-  env: Env
+  userId: string
 ): Promise<any | null> => {
   try {
-    const { createDb } = await import("../db");
-    const db = createDb(env.DATABASE_URL);
+    const databaseUrl = getDatabaseUrl();
+    const db = createDb(databaseUrl);
 
     // Check if the space exists and belongs to the user
     const space = await db

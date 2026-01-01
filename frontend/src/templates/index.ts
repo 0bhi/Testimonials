@@ -1,14 +1,10 @@
 import React from "react";
-import ModernTemplateComponent from "./ModernTemplate";
-import ClassicTemplateComponent from "./ClassicTemplate";
-import MinimalTemplateComponent from "./MinimalTemplate";
-import CardTemplateComponent from "./CardTemplate";
-
-// Template registry - easily add new templates here
-export { default as ModernTemplate } from "./ModernTemplate";
-export { default as ClassicTemplate } from "./ClassicTemplate";
-export { default as MinimalTemplate } from "./MinimalTemplate";
-export { default as CardTemplate } from "./CardTemplate";
+import ModernTemplate from "./ModernTemplate";
+import ClassicTemplate from "./ClassicTemplate";
+import MinimalTemplate from "./MinimalTemplate";
+import CardGridTemplate from "./CardGridTemplate";
+import CarouselTemplate from "./CarouselTemplate";
+import GradientTemplate from "./GradientTemplate";
 
 export interface Testimonial {
   id: string;
@@ -18,57 +14,61 @@ export interface Testimonial {
   image: string;
 }
 
-export interface TemplateProps {
-  testimonials: Testimonial[];
-}
-
-// Template metadata for selection UI
-export interface TemplateMetadata {
+export interface Template {
   id: string;
   name: string;
   description: string;
-  preview: string; // Preview image or description
-  component: React.ComponentType<TemplateProps>;
+  component: React.ComponentType<{ testimonials: Testimonial[] }>;
 }
 
-export const TEMPLATES: Record<string, TemplateMetadata> = {
-  modern: {
+const templates: Template[] = [
+  {
     id: "modern",
     name: "Modern",
-    description: "Dark gradient background with glassmorphism cards",
-    preview: "Modern dark theme with gradient backgrounds",
-    component: ModernTemplateComponent,
+    description: "A sleek, contemporary design with smooth animations and clean typography. Perfect for modern brands.",
+    component: ModernTemplate,
   },
-  classic: {
+  {
     id: "classic",
     name: "Classic",
-    description: "Clean white background with elegant borders",
-    preview: "Classic white theme with subtle shadows",
-    component: ClassicTemplateComponent,
+    description: "A timeless, elegant design with traditional styling. Ideal for professional and corporate use.",
+    component: ClassicTemplate,
   },
-  minimal: {
+  {
     id: "minimal",
     name: "Minimal",
-    description: "Ultra-minimal design with focus on content",
-    preview: "Minimal design with clean typography",
-    component: MinimalTemplateComponent,
+    description: "Clean and simple design that focuses on content. Great for minimalist brands.",
+    component: MinimalTemplate,
   },
-  card: {
-    id: "card",
-    name: "Card",
-    description: "Colorful cards with rounded corners",
-    preview: "Colorful card-based layout",
-    component: CardTemplateComponent,
+  {
+    id: "card-grid",
+    name: "Card Grid",
+    description: "Beautiful card-based layout in a responsive grid. Perfect for showcasing multiple testimonials.",
+    component: CardGridTemplate,
   },
-};
+  {
+    id: "carousel",
+    name: "Carousel",
+    description: "An interactive carousel that cycles through testimonials with smooth transitions.",
+    component: CarouselTemplate,
+  },
+  {
+    id: "gradient",
+    name: "Gradient",
+    description: "Vibrant gradient design with dynamic colors and modern animations.",
+    component: GradientTemplate,
+  },
+];
 
-// Get template component by ID
-export const getTemplate = (templateId: string) => {
-  return TEMPLATES[templateId] || TEMPLATES.modern;
-};
+export function getAllTemplates(): Template[] {
+  return templates;
+}
 
-// Get all available templates
-export const getAllTemplates = () => {
-  return Object.values(TEMPLATES);
-};
+export function getTemplate(id: string): Template {
+  const template = templates.find((t) => t.id === id);
+  if (!template) {
+    return templates[0]; // Return default template if not found
+  }
+  return template;
+}
 

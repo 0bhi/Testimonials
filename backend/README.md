@@ -1,11 +1,10 @@
 # Testimonials Backend
 
-A Cloudflare Workers backend for the Testimonials app using Drizzle ORM, NeonDB, and Better Auth.
+An Express.js backend for the Testimonials app using Drizzle ORM and NeonDB.
 
 ## Features
 
-- User authentication with Better Auth
-- Google OAuth integration
+- User authentication with JWT tokens
 - Credentials (email/password) authentication
 - Space management
 - Testimonial collection and management
@@ -21,31 +20,35 @@ npm install
 
 ### 2. Environment Variables
 
-Create a `.dev.vars` file in the backend directory with the following variables:
+Create a `.env` file in the backend directory with the following variables:
 
 ```env
 DATABASE_URL=your_neon_database_url
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-AUTH_SECRET=your_auth_secret_key
+JWT_SECRET=your_jwt_secret_key
+ALLOWED_ORIGIN=http://localhost:5173
+PORT=3000
+NODE_ENV=development
 ```
 
-#### Getting Google OAuth Credentials
+#### Generating JWT_SECRET
 
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Enable the Google+ API
-4. Go to "Credentials" and create an OAuth 2.0 Client ID
-5. Add your domain to the authorized origins
-6. Add your redirect URI: `https://your-domain.com/api/auth/callback/google`
-
-#### Generating AUTH_SECRET
-
-Generate a secure random string for your AUTH_SECRET:
+Generate a secure random string for your JWT_SECRET:
 
 ```bash
 openssl rand -base64 32
 ```
+
+#### Validate Environment Variables
+
+Before starting the server, validate your environment configuration:
+
+```bash
+npm run validate-env
+```
+
+This will check all required variables and show a configuration summary.
+
+**📖 For detailed environment setup instructions, see [ENVIRONMENT_SETUP.md](../ENVIRONMENT_SETUP.md)**
 
 ### 3. Database Setup
 
@@ -57,36 +60,46 @@ The database schema is already set up with the necessary tables. Make sure your 
 npm run dev
 ```
 
-### 5. Deployment
+The server will start on `http://localhost:3000` (or the port specified in your `.env` file).
+
+### 5. Build and Production
+
+Build the TypeScript code:
 
 ```bash
-npm run deploy
+npm run build
+```
+
+Start the production server:
+
+```bash
+npm start
 ```
 
 ## API Endpoints
 
 ### Authentication
-- `GET /api/auth/signin` - Sign in page
-- `GET /api/auth/signout` - Sign out
-- `GET /api/auth/session` - Get current session
-- `GET /api/auth/callback/google` - Google OAuth callback
+- `POST /api/auth/signin` - Sign in with email and password
+- `POST /api/auth/signup` - Create a new account
+- `GET /api/auth/session` - Get current session (requires Bearer token)
 
 ### Spaces
 - `GET /space` - Get user's spaces (authenticated)
 - `POST /space/create` - Create a new space (authenticated)
-- `GET /space/:spaceName` - Get specific space (authenticated)
-- `GET /space/public/:spaceName` - Get public space data
+- `GET /space/:spaceName` - Get specific space with testimonials (authenticated)
+- `GET /space/public/:spaceName` - Get public space data (no authentication required)
+- `PATCH /space/:spaceName/template` - Update space template (authenticated)
 
 ### Testimonials
-- `POST /space/:spaceName/testimonials` - Submit a testimonial
-- `DELETE /space/:spaceName/testimonials/:id` - Delete testimonial (authenticated)
+- `POST /space/:spaceName/testimonials` - Submit a testimonial (no authentication required)
+- `DELETE /space/:spaceName/testimonials/:testimonialId` - Delete testimonial (authenticated)
 
 ## Authentication Flow
 
-1. Users can sign in with Google OAuth or email/password
-2. Better Auth handles session management with JWT tokens
-3. Protected routes require valid session tokens
-4. Session tokens are automatically refreshed
+1. Users sign up or sign in with email/password
+2. JWT tokens are generated and returned upon successful authentication
+3. Protected routes require a valid Bearer token in the Authorization header
+4. Tokens expire after 7 days
 
 ## Database Schema
 

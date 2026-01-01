@@ -34,6 +34,7 @@ export const spaces = pgTable(
     question2: varchar("question2", { length: 500 }).notNull(),
     question3: varchar("question3", { length: 500 }).notNull(),
     template: varchar("template", { length: 50 }).default("modern").notNull(),
+    selectedTestimonials: text("selected_testimonials"), // JSON array of testimonial IDs
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

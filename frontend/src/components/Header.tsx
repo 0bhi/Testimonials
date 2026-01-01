@@ -27,7 +27,7 @@ const Header = () => {
     <header className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-b border-white/10">
       <nav className="max-w-7xl mx-auto px-6 py-4 lg:px-12 flex justify-between items-center">
         <div className="hidden md:flex md:justify-between space-x-4 w-full">
-          <h1 className="text-2xl font-bold">Testimonials App</h1>
+          <h1 className="text-2xl font-bold">Testimonials</h1>
           {!isPublicTestimonialPage && (
             <div className="flex items-center justify-between">
               {status === "loading" ? (

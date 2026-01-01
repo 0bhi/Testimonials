@@ -24,9 +24,17 @@ npm install
 Create a `.env` file in the frontend directory:
 
 ```env
-VITE_BACKEND_URL=your_backend_url
-VITE_FRONTEND_URL=your_frontend_url
+VITE_BACKEND_URL=http://localhost:3000
+VITE_FRONTEND_URL=http://localhost:5173
 ```
+
+**Notes:**
+- The `.env` file is gitignored and should not be committed
+- For production, set `VITE_BACKEND_URL` to your production API URL in your deployment platform
+- Defaults to `http://localhost:3000` if not set (development only)
+- Vite environment variables are embedded at build time, not runtime
+
+**📖 For detailed environment setup instructions for both development and production, see [ENVIRONMENT_SETUP.md](../ENVIRONMENT_SETUP.md)**
 
 ### 3. Development
 
@@ -42,11 +50,10 @@ npm run build
 
 ## Authentication
 
-The frontend uses Better Auth for authentication with the following features:
+The frontend uses JWT-based authentication:
 
-- **Google OAuth**: Users can sign in with their Google account
 - **Credentials**: Users can sign in with email and password
-- **Session Management**: Automatic session handling and token refresh
+- **Session Management**: JWT tokens stored in localStorage
 - **Protected Routes**: Routes that require authentication are automatically protected
 
 ## Pages

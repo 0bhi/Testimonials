@@ -108,4 +108,19 @@ export const api = {
       },
       token
     ),
+
+  // Update selected testimonials
+  updateSelectedTestimonials: (
+    spaceName: string,
+    selectedTestimonials: string[],
+    token?: string | null
+  ) =>
+    apiCall(
+      `/space/${spaceName}/selected-testimonials`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ selectedTestimonials }),
+      },
+      token
+    ),
 };
