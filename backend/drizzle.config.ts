@@ -6,7 +6,6 @@ export default defineConfig({
   out: "./drizzle",
   driver: "pg",
   dbCredentials: {
-    // Use the SAME database as your Worker (`DATABASE_URL` in `.env` / `wrangler.toml`)
     connectionString: process.env.DATABASE_URL || "",
   },
   verbose: true,
