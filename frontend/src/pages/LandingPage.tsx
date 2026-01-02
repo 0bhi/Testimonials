@@ -7,6 +7,16 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const { data: session, status } = useSession();
 
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-apple-dark-bg flex items-center justify-center">
+        <div className="text-apple-gray-400">Loading...</div>
+      </div>
+    );
+  }
+
+  // Redirect if authenticated
   if (status === "authenticated" && session) {
     return <Navigate to="/dashboard" replace />;
   }
