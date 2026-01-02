@@ -88,10 +88,9 @@ const MinimalTemplate = ({ testimonials }: MinimalTemplateProps) => {
                       {testimonial.name.charAt(0).toUpperCase()}
                     </motion.div>
                   )}
-                  <p className="text-sm font-medium text-slate-900 mb-1">
+                  <p className="text-sm font-medium text-slate-900">
                     {testimonial.name}
                   </p>
-                  <p className="text-xs text-slate-500">{testimonial.email}</p>
                 </motion.div>
               </motion.div>
             </motion.div>

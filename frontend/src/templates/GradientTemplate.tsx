@@ -100,9 +100,6 @@ const GradientTemplate = ({ testimonials }: GradientTemplateProps) => {
                       <h3 className="text-2xl font-bold text-white">
                         {testimonial.name}
                       </h3>
-                      <p className="text-white/80 text-sm">
-                        {testimonial.email}
-                      </p>
                     </div>
                   </motion.div>
                   <motion.p

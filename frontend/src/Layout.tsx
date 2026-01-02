@@ -1,15 +1,18 @@
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 const Layout: React.FC = () => {
+  const location = useLocation();
+  const isPublicTestimonialPage = location.pathname.startsWith("/testimonial/");
+
   return (
     <div>
-      <Header />
+      {!isPublicTestimonialPage && <Header />}
       <main>
         <Outlet />
       </main>
-      <Footer />
+      {!isPublicTestimonialPage && <Footer />}
     </div>
   );
 };

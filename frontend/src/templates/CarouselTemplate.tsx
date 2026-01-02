@@ -106,12 +106,9 @@ const CarouselTemplate = ({ testimonials }: CarouselTemplateProps) => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <h3 className="text-2xl font-semibold text-white mb-2">
+                  <h3 className="text-2xl font-semibold text-white">
                     {testimonials[currentIndex].name}
                   </h3>
-                  <p className="text-white/70">
-                    {testimonials[currentIndex].email}
-                  </p>
                 </motion.div>
               </motion.div>
             </motion.div>

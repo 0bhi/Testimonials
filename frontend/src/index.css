@@ -1,3 +1,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  * {
+    @apply antialiased;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-apple-dark-bg text-apple-gray-50;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Apple-style focus states */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-apple-blue-500 ring-offset-2 ring-offset-apple-dark-bg;
+  }
+
+  /* Smooth transitions for interactive elements */
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    @apply transition-all duration-200 ease-out;
+  }
+}
+
+@layer components {
+  /* Apple-style button */
+  .btn-apple {
+    @apply px-6 py-3 rounded-apple font-medium text-body-sm;
+    @apply bg-apple-dark-elevated text-apple-gray-50;
+    @apply hover:bg-apple-dark-surface active:scale-[0.98];
+    @apply shadow-apple hover:shadow-apple-md border border-apple-dark-border;
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .btn-apple-primary {
+    @apply px-6 py-3 rounded-apple font-medium text-body-sm;
+    @apply bg-apple-blue-500 text-white;
+    @apply hover:bg-apple-blue-400 active:scale-[0.98];
+    @apply shadow-apple hover:shadow-apple-glow;
+    @apply transition-all duration-200 ease-out;
+  }
+
+  /* Apple-style input */
+  .input-apple {
+    @apply w-full px-4 py-3 rounded-apple;
+    @apply bg-apple-dark-surface border border-apple-dark-border;
+    @apply text-body text-apple-gray-50;
+    @apply placeholder:text-apple-gray-400;
+    @apply focus:border-apple-blue-500 focus:ring-2 focus:ring-apple-blue-500/30;
+    @apply transition-all duration-200 ease-out;
+  }
+
+  /* Apple-style card */
+  .card-apple {
+    @apply bg-apple-dark-card rounded-apple-lg p-6;
+    @apply shadow-apple hover:shadow-apple-md border border-apple-dark-border;
+    @apply transition-all duration-300 ease-out;
+  }
+}

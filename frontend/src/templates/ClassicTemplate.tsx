@@ -104,9 +104,6 @@ const ClassicTemplate = ({ testimonials }: ClassicTemplateProps) => {
                     <h3 className="text-base font-semibold text-amber-900 truncate">
                       {testimonial.name}
                     </h3>
-                    <p className="text-xs text-amber-700 truncate">
-                      {testimonial.email}
-                    </p>
                   </div>
                 </motion.div>
               </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { useSession } from "../contexts/AuthContext";
+import { motion } from "framer-motion";
 
 const CreateSpace = () => {
   const navigate = useNavigate();
@@ -42,82 +43,97 @@ const CreateSpace = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4 py-12">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 shadow-xl w-full max-w-lg"
+    <div className="min-h-screen bg-apple-dark-bg flex items-center justify-center px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-lg"
       >
-        <h2 className="text-3xl font-bold mb-6 text-center text-white">
-          Create Space
-        </h2>
+        <div className="card-apple p-10 lg:p-12 shadow-apple-xl">
+          <h2 className="text-headline-sm font-semibold mb-6 text-center text-apple-gray-50 tracking-tight">
+            Create Space
+          </h2>
 
-        <div className="space-y-4">
-          <div>
-            <label className="sr-only" htmlFor="spaceName">
-              Space Name
-            </label>
-            <input
-              id="spaceName"
-              type="text"
-              value={spaceName}
-              onChange={(e) => setSpaceName(e.target.value)}
-              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Space Name"
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="spaceName" className="sr-only">
+                  Space Name
+                </label>
+                <input
+                  id="spaceName"
+                  type="text"
+                  value={spaceName}
+                  onChange={(e) => setSpaceName(e.target.value)}
+                  className="input-apple"
+                  placeholder="Space Name"
+                  required
+                />
+              </div>
 
-          <div>
-            <label className="sr-only" htmlFor="headerTitle">
-              Header Title
-            </label>
-            <input
-              id="headerTitle"
-              type="text"
-              value={headerTitle}
-              onChange={(e) => setHeaderTitle(e.target.value)}
-              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Header Title"
-              required
-            />
-          </div>
+              <div>
+                <label htmlFor="headerTitle" className="sr-only">
+                  Header Title
+                </label>
+                <input
+                  id="headerTitle"
+                  type="text"
+                  value={headerTitle}
+                  onChange={(e) => setHeaderTitle(e.target.value)}
+                  className="input-apple"
+                  placeholder="Header Title"
+                  required
+                />
+              </div>
 
-          <div>
-            <label className="sr-only" htmlFor="customMessage">
-              Custom Message
-            </label>
-            <textarea
-              id="customMessage"
-              value={customMessage}
-              onChange={(e) => setCustomMessage(e.target.value)}
-              className="appearance-none relative block w-full px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-slate-800 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Custom Message"
-              rows={4}
-              required
-            />
-          </div>
+              <div>
+                <label htmlFor="customMessage" className="sr-only">
+                  Custom Message
+                </label>
+                <textarea
+                  id="customMessage"
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  className="input-apple min-h-[120px] resize-none"
+                  placeholder="Custom Message"
+                  rows={4}
+                  required
+                />
+              </div>
 
-          <div>
-            <p className="text-gray-400 text-sm">
-              Guests will see your header and custom message, then a single
-              feedback box (no questions).
-            </p>
-          </div>
+              <div>
+                <p className="text-body-sm text-apple-gray-300 leading-relaxed">
+                  Guests will see your header and custom message, then a single
+                  feedback box (no questions).
+                </p>
+              </div>
+            </div>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-red-400 text-body-sm text-center bg-red-900/20 border border-red-800/30 rounded-apple p-3"
+              >
+                {error}
+              </motion.div>
+            )}
+
+            <div className="flex items-center justify-center">
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                type="submit"
+                disabled={loading}
+                className="btn-apple-primary w-full py-4 rounded-apple-lg shadow-apple-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Creating..." : "Create Space"}
+              </motion.button>
+            </div>
+          </form>
         </div>
-
-        {error && (
-          <div className="mt-4 text-red-400 text-center text-sm">{error}</div>
-        )}
-        <div className="flex items-center justify-center mt-6">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all"
-          >
-            {loading ? "Creating..." : "Create Space"}
-          </button>
-        </div>
-      </form>
+      </motion.div>
     </div>
   );
 };

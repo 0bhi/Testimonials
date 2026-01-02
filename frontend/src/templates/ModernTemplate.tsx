@@ -71,7 +71,6 @@ const ModernTemplate = ({ testimonials }: ModernTemplateProps) => {
                   <h3 className="text-lg font-semibold text-slate-900">
                     {testimonial.name}
                   </h3>
-                  <p className="text-sm text-slate-500">{testimonial.email}</p>
                 </div>
               </div>
               <motion.p

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSession, useAuth } from "../contexts/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,97 +24,130 @@ const Header = () => {
     signOut();
   };
 
+  // Hide header completely on testimonial submission pages
+  if (isPublicTestimonialPage) {
+    return null;
+  }
+
   return (
-    <header className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-b border-white/10">
+    <header className="bg-apple-dark-bg/80 backdrop-blur-apple border-b border-apple-dark-border sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto px-6 py-4 lg:px-12 flex justify-between items-center">
-        <div className="hidden md:flex md:justify-between space-x-4 w-full">
-          <h1 className="text-2xl font-bold">Testimonials</h1>
+        <div className="hidden md:flex md:justify-between md:items-center w-full">
+          <Link
+            to="/"
+            className="text-title-sm font-semibold text-apple-gray-50 hover:text-apple-gray-300 transition-colors"
+          >
+            Testimonials
+          </Link>
           {!isPublicTestimonialPage && (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               {status === "loading" ? (
-                <div className="text-gray-400">Loading...</div>
+                <div className="text-apple-gray-400 text-body-sm">
+                  Loading...
+                </div>
               ) : session ? (
-                <div className="flex items-center space-x-4">
-                  <span className="text-gray-300">
+                <div className="flex items-center gap-4">
+                  <span className="text-body-sm text-apple-gray-300">
                     {session.user?.name || session.user?.email}
                   </span>
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleSignOut}
-                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg shadow-md"
+                    className="px-4 py-2 rounded-apple bg-red-900/20 text-red-400 text-body-sm font-medium hover:bg-red-900/30 border border-red-800/30 transition-colors"
                   >
                     Sign Out
-                  </button>
+                  </motion.button>
                 </div>
               ) : (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleSignIn}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-4 py-2 rounded-lg font-medium text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                  className="btn-apple-primary px-6 py-2.5 rounded-apple shadow-apple"
                 >
-                  <span className="flex items-center gap-2">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                      ></path>
-                    </svg>
-                    Sign In
-                  </span>
-                </button>
+                  Sign In
+                </motion.button>
               )}
             </div>
           )}
         </div>
         <div className="md:hidden">
-          <button onClick={toggleMenu} className="focus:outline-none">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleMenu}
+            className="p-2 text-apple-gray-50 focus:outline-none"
+            aria-label="Toggle menu"
+          >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16m-7 6h7"
-              ></path>
+              {isOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
             </svg>
-          </button>
+          </motion.button>
         </div>
       </nav>
-      {isOpen && (
-        <div className="md:hidden mt-2 space-y-2 px-6 pb-4">
-          <Link to="/" className="block text-gray-300">
-            Home
-          </Link>
-          <Link to="/customers" className="block text-gray-300">
-            Customers
-          </Link>
-          <Link to="/features" className="block text-gray-300">
-            Features
-          </Link>
-          <Link to="/integration" className="block text-gray-300">
-            Integration
-          </Link>
-          <Link to="/pricing" className="block text-gray-300">
-            Pricing
-          </Link>
-          <Link to="/login" className="block text-gray-300">
-            Login
-          </Link>
-          <Link to="/about" className="block text-gray-300">
-            About
-          </Link>
-        </div>
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden border-t border-apple-dark-border bg-apple-dark-bg/95 backdrop-blur-apple"
+          >
+            <div className="px-6 py-4 space-y-3">
+              {!isPublicTestimonialPage && (
+                <>
+                  {status === "loading" ? (
+                    <div className="text-apple-gray-400 text-body-sm">
+                      Loading...
+                    </div>
+                  ) : session ? (
+                    <>
+                      <div className="text-body-sm text-apple-gray-300 py-2">
+                        {session.user?.name || session.user?.email}
+                      </div>
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleSignOut}
+                        className="w-full px-4 py-2 rounded-apple bg-red-900/20 text-red-400 text-body-sm font-medium hover:bg-red-900/30 border border-red-800/30 transition-colors text-left"
+                      >
+                        Sign Out
+                      </motion.button>
+                    </>
+                  ) : (
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleSignIn}
+                      className="w-full btn-apple-primary px-6 py-2.5 rounded-apple shadow-apple"
+                    >
+                      Sign In
+                    </motion.button>
+                  )}
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

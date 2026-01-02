@@ -99,9 +99,6 @@ const CardGridTemplate = ({ testimonials }: CardGridTemplateProps) => {
                   <h3 className="text-lg font-semibold text-gray-900 truncate">
                     {testimonial.name}
                   </h3>
-                  <p className="text-sm text-gray-500 truncate">
-                    {testimonial.email}
-                  </p>
                 </div>
               </div>
               <motion.p
