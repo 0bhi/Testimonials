@@ -1,32 +1,20 @@
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { api } from "../services/api";
 import { getTemplate, Testimonial } from "../templates";
 
 const EmbedTestimonials = () => {
   const { spaceName } = useParams<{ spaceName: string }>();
-  const [searchParams] = useSearchParams();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [templateId, setTemplateId] = useState<string>("modern");
-
-  // Get URL parameters for customization
-  const limit = parseInt(searchParams.get("limit") || "0", 10); // 0 means show all
-  const page = parseInt(searchParams.get("page") || "1", 10);
 
   useEffect(() => {
     const fetchSpace = async () => {
       try {
         const response = await api.getPublicSpace(spaceName!);
         const data = await response.json();
-        let allTestimonials = data.testimonials || [];
-
-        // Apply pagination if limit is specified
-        if (limit > 0) {
-          const startIndex = (page - 1) * limit;
-          const endIndex = startIndex + limit;
-          allTestimonials = allTestimonials.slice(startIndex, endIndex);
-        }
+        const allTestimonials = data.testimonials || [];
 
         setTestimonials(allTestimonials);
 
@@ -41,7 +29,7 @@ const EmbedTestimonials = () => {
       }
     };
     fetchSpace();
-  }, [spaceName, limit, page]);
+  }, [spaceName]);
 
   if (loading) {
     return (

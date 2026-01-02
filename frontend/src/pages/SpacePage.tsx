@@ -104,12 +104,13 @@ const SpacePage = () => {
     );
   }
 
-  const embedCode = `<iframe src="${FRONTEND_URL}/embed/testimonials/${spaceName}" width="100%" height="600" frameborder="0" style="border:0; overflow:hidden;" allowfullscreen></iframe>
+  // Build embed URL
+  const buildEmbedUrl = () => {
+    return `${FRONTEND_URL}/embed/testimonials/${spaceName}`;
+  };
 
-<!-- Optional: Add URL parameters for customization -->
-<!-- Limit testimonials: ?limit=6 -->
-<!-- Pagination: ?limit=6&page=1 -->
-<!-- Example: src="${FRONTEND_URL}/embed/testimonials/${spaceName}?limit=6" -->`;
+  const embedUrl = buildEmbedUrl();
+  const embedCode = `<iframe src="${embedUrl}" width="100%" height="600" frameborder="0" style="border:0; overflow:hidden;" allowfullscreen></iframe>`;
   const testimonialLink = `${FRONTEND_URL}/testimonial/${spaceName}`;
 
   // Create sample testimonials for preview
@@ -632,75 +633,109 @@ const SpacePage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="card-apple"
+                    className="card-apple space-y-6"
                   >
-                    <h3 className="text-title font-semibold text-apple-gray-50 mb-4">
-                      Embed Code
-                    </h3>
-                    <p className="text-body-sm text-apple-gray-300 mb-4">
-                      Current template:{" "}
-                      <span className="font-semibold text-apple-gray-50">
-                        {getTemplate(selectedTemplate).name}
-                      </span>
-                    </p>
-                    <div className="mb-4 p-4 bg-apple-blue-900/20 border border-apple-blue-800/30 rounded-apple">
-                      <p className="text-apple-blue-300 text-body-sm mb-2 font-semibold">
-                        💡 Tips for embedding:
+                    <div>
+                      <h3 className="text-title font-semibold text-apple-gray-50 mb-2">
+                        Embed Code
+                      </h3>
+                      <p className="text-body-sm text-apple-gray-400">
+                        Current template:{" "}
+                        <span className="font-semibold text-apple-gray-50">
+                          {getTemplate(selectedTemplate).name}
+                        </span>
                       </p>
-                      <ul className="text-apple-blue-200 text-caption space-y-1 list-disc list-inside">
+                    </div>
+
+                    {/* Preview URL */}
+                    <div>
+                      <label className="block text-body-sm font-medium text-apple-gray-300 mb-2">
+                        Preview URL
+                      </label>
+                      <div className="p-3 bg-apple-dark-surface rounded-apple border border-apple-dark-border">
+                        <code className="text-body-sm text-apple-blue-400 break-all">
+                          {embedUrl}
+                        </code>
+                      </div>
+                    </div>
+
+                    {/* Embed Code */}
+                    <div>
+                      <label className="block text-body-sm font-medium text-apple-gray-300 mb-2">
+                        Embed Code
+                      </label>
+                      <textarea
+                        readOnly
+                        value={embedCode}
+                        className="w-full p-4 rounded-apple bg-apple-dark-surface text-apple-gray-50 border border-apple-dark-border focus:outline-none font-mono text-body-sm resize-none"
+                        rows={4}
+                      />
+                    </div>
+
+                    {/* Info Box */}
+                    <div className="p-4 bg-apple-blue-900/20 border border-apple-blue-800/30 rounded-apple">
+                      <p className="text-apple-blue-300 text-body-sm mb-2 font-semibold">
+                        💡 Tips
+                      </p>
+                      <ul className="text-apple-blue-200 text-caption space-y-1">
                         <li>
-                          Only selected testimonials (from "Select for Embed"
-                          tab) will be shown in the embed
+                          • Only selected testimonials (from "Select for Embed"
+                          tab) will be shown
                         </li>
-                        <li>Adjust the height attribute to fit your content</li>
                         <li>
-                          Use{" "}
-                          <code className="bg-apple-blue-100 px-1 rounded">
-                            ?limit=6
-                          </code>{" "}
-                          to show only 6 testimonials
+                          • Adjust the height attribute in the code to fit your
+                          content
                         </li>
                         <li>
-                          Use{" "}
-                          <code className="bg-apple-blue-100 px-1 rounded">
-                            ?limit=6&page=2
-                          </code>{" "}
-                          for pagination
-                        </li>
-                        <li>
-                          Remove height for auto-sizing (works best with grid
+                          • Remove height for auto-sizing (works best with grid
                           templates)
                         </li>
                       </ul>
                     </div>
-                    <textarea
-                      readOnly
-                      value={embedCode}
-                      className="w-full p-4 rounded-apple bg-apple-dark-surface text-apple-gray-50 border border-apple-dark-border focus:outline-none font-mono text-body-sm resize-none"
-                      rows={8}
-                    />
-                    <div className="mt-4 flex gap-3">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => copyToClipboard(embedCode)}
-                        className="btn-apple-primary"
-                      >
-                        {copied ? "Copied!" : "Copy Embed Code"}
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() =>
-                          copyToClipboard(
-                            `<iframe src="${FRONTEND_URL}/embed/testimonials/${spaceName}?limit=6" width="100%" height="600" frameborder="0" style="border:0; overflow:hidden;" allowfullscreen></iframe>`
-                          )
-                        }
-                        className="btn-apple"
-                      >
-                        Copy with Limit (6)
-                      </motion.button>
-                    </div>
+
+                    {/* Copy Button */}
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => copyToClipboard(embedCode)}
+                      className="btn-apple-primary w-full py-4 text-body-sm"
+                    >
+                      {copied ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                          Copied!
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                          Copy Embed Code
+                        </span>
+                      )}
+                    </motion.button>
                   </motion.div>
                 )}
               </AnimatePresence>
