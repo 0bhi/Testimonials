@@ -1,4 +1,4 @@
-# Testimo
+# Testimonials
 
 <div align="center">
 
